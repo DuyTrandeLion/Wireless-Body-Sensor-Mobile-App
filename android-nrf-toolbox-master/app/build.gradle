@@ -1,0 +1,64 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 27
+    buildToolsVersion "27.0.1"
+
+    defaultConfig {
+        applicationId "no.nordicsemi.android.nrftoolbox"
+        minSdkVersion 18
+        targetSdkVersion 27
+        versionCode 66
+        versionName "2.6.0"
+        resConfigs "en"
+    }
+    buildTypes {
+        debug {
+            minifyEnabled true
+            useProguard false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        release {
+            minifyEnabled true
+            useProguard true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation project(':common')
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    wearApp project(path: ':wear')
+
+    // nRF Toolbox is using Play Service 10.2.0 in order to make the app working in China:
+    // https://developer.android.com/training/wearables/apps/creating-app-china.html
+    //noinspection GradleDependency
+    implementation 'com.google.android.gms:play-services-wearable:10.2.0'
+
+    //noinspection GradleDependency
+    implementation 'com.android.support:appcompat-v7:27.0.2'
+    //noinspection GradleDependency
+    implementation 'com.android.support:design:27.0.2'
+
+    implementation 'no.nordicsemi.android:log:2.1.1'
+    implementation 'no.nordicsemi.android.support.v18:scanner:1.0.0'
+
+    // The DFU Library is imported automatically from jcenter:
+    implementation 'no.nordicsemi.android:dfu:1.6.1'
+    // if you desire to build the DFU Library, clone the https://github.com/NordicSemiconductor/Android-DFU-Library project into DFULibrary folder,
+    // add it as a module into the project structure and uncomment the following line (and also the according lines in the settings.gradle):
+    // implementation project(':dfu')
+
+    // Import the BLE Library
+    implementation project(':ble')
+
+    implementation('org.simpleframework:simple-xml:2.7.1') {
+        exclude group: 'stax', module: 'stax-api'
+        exclude group: 'xpp3', module: 'xpp3'
+    }
+}

@@ -1,0 +1,67 @@
+// module :wear build.gradle for Wear 1.0 and 2.0 watches.
+// https://developer.android.com/training/wearables/apps/packaging.html
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 27
+
+    defaultConfig {
+        applicationId "no.nordicsemi.android.nrftoolbox"
+        minSdkVersion 23
+        targetSdkVersion 27
+        versionCode 272606601 // target: 27, version: 2.6.0, build: 66, multi-APK: 01
+        versionName "2.6.0"
+        resConfigs "en"
+    }
+    lintOptions {
+        abortOnError false
+    }
+    buildTypes {
+        debug {
+            minifyEnabled true
+            useProguard false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        release {
+            minifyEnabled true
+            useProguard true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+// exclude these from the build:
+configurations.all() { configuration -> exclude group: "org.apache.httpcomponents", module: "httpclient" }
+
+dependencies {
+    implementation project(':common')
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'no.nordicsemi.android.support.v18:scanner:1.0.0'
+    implementation 'com.google.android.support:wearable:2.1.0'
+    compileOnly 'com.google.android.wearable:wearable:2.1.0'
+
+    // uncomment to enable the Wear UI Library
+    // https://developer.android.com/training/wearables/ui/wear-ui-library.html
+    // implementation 'com.android.support:wear:27.0.2'
+
+    // nRF Toolbox is using Play Service 10.2.0 in order to make the app working in China:
+    // https://developer.android.com/training/wearables/apps/creating-app-china.html#ChinaSDK
+    //noinspection GradleDependency
+    implementation 'com.google.android.gms:play-services-wearable:10.2.0'
+}
+
+// temporary workaround for support library version mismatch
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        def requested = details.requested
+        if (requested.group == 'com.android.support') {
+            if (!requested.name.startsWith("multidex")) {
+                details.useVersion '27.0.2'
+            }
+        }
+    }
+}
