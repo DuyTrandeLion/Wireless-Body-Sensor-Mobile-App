@@ -23,7 +23,7 @@
 
 <resources>
 	<string name="cgms_feature_title">CGMS</string>
-	<string name="cgms_feature_title_long">CONT. GLUCOSE MONITOR</string>
+	<string name="cgms_feature_title_long">THEO DÕI GLUCOSE LIÊN TỤC</string>
 	<dimen name="cgms_feature_title_long_margin">-180dp</dimen>
 
 	<string name="cgms_default_name">DEFAULT CGMS</string>

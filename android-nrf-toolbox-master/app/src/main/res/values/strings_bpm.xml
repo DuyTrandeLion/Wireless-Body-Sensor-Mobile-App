@@ -21,9 +21,9 @@
   ~ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   -->
 <resources>
-    <string name="bpm_feature_title">BPM</string>
+    <string name="bpm_feature_title">HUYẾT ÁP KẾ</string>
     
-    <string name="bpm_feature_title_long">BLOOD PRESSURE</string>
+    <string name="bpm_feature_title_long">HUYẾT ÁP</string>
     <dimen name="bpm_feature_title_long_margin">-115dp</dimen>
     
     <string name="bpm_section_bp_header">BLOOD PRESSURE</string>

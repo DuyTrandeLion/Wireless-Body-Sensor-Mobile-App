@@ -44,6 +44,7 @@
 			android:layout_centerVertical="true"
 			android:layout_marginLeft="@dimen/dfu_feature_title_long_margin"
 			android:rotation="270"
+			android:visibility="gone"
 			android:text="@string/dfu_feature_title_long"
 			android:textColor="@color/darkGray"
 			android:textSize="32dp"
