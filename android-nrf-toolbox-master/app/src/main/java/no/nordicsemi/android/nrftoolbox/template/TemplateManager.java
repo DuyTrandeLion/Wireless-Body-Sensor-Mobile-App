@@ -38,12 +38,22 @@ import no.nordicsemi.android.nrftoolbox.parser.TemplateParser;
  * Modify to template manager to match your requirements.
  */
 public class TemplateManager extends BleManager<TemplateManagerCallbacks> {
-	private static final String TAG = "TemplateManager";
+	private static final String TAG = "ReplaceHTS";
+
+	private final static int HIDE_MSB_8BITS_OUT_OF_32BITS = 0x00FFFFFF;
+	private final static int HIDE_MSB_8BITS_OUT_OF_16BITS = 0x00FF;
+	private final static int SHIFT_LEFT_8BITS = 8;
+	private final static int SHIFT_LEFT_16BITS = 16;
+	private final static int GET_BIT24 = 0x00400000;
+	private final static int FIRST_BIT_MASK = 0x01;
 
 	/** The service UUID */
-	public final static UUID SERVICE_UUID = UUID.fromString("0000180D-0000-1000-8000-00805f9b34fb"); // TODO change the UUID to your match your service
+	public final static UUID SERVICE_UUID = UUID.fromString("00001809-0000-1000-8000-00805f9b34fb"); // TODO change the UUID to your match your service
 	/** The characteristic UUID */
-	private static final UUID MEASUREMENT_CHARACTERISTIC_UUID = UUID.fromString("00002A37-0000-1000-8000-00805f9b34fb"); // TODO change the UUID to your match your characteristic
+	private static final UUID MEASUREMENT_CHARACTERISTIC_UUID = UUID.fromString("00002A1C-0000-1000-8000-00805f9b34fb"); // TODO change the UUID to your match your characteristic
+
+	/** The characteristic UUID */
+	private static final UUID RHTS_SENSOR_LOCATION_CHARACTERISTIC_UUID = UUID.fromString("00002A1D-0000-1000-8000-00805f9b34fb");
 
 	// TODO add more services and characteristics, if required
 	private BluetoothGattCharacteristic mCharacteristic;
@@ -101,16 +111,25 @@ public class TemplateManager extends BleManager<TemplateManagerCallbacks> {
 
 			Logger.a(mLogSession, "\"" + TemplateParser.parse(characteristic) + "\" received");
 
-			int value;
-			final int flags = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
-			if ((flags & 0x01) > 0) {
-				value = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, 1);
-			} else {
-				value = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 1);
-			}
+//			int value;
+//			final int flags = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
+//			if ((flags & 0x01) > 0) {
+//				value = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, 1);
+//			} else {
+//				value = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, 1);
+//			}
 			//This will send callback to the Activity when new value is received from HR device
-			mCallbacks.onSampleValueReceived(gatt.getDevice(), value);
+
+			final int flags = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
+			int temperatureValue = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, 1);
+			final float displayTeperature = temperatureValue/100;
+			mCallbacks.onSampleValueReceived(gatt.getDevice(), temperatureValue);
+
 		}
+
+//		private int flagsDecode(byte[] data) {
+//
+//		}
 
 		@Override
 		protected void onCharacteristicIndicated(final BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic) {
@@ -131,5 +150,43 @@ public class TemplateManager extends BleManager<TemplateManagerCallbacks> {
 		}
 	};
 
+	/**
+	 * This method decode temperature value received from Health Thermometer device First byte {0} of data is flag and first bit of flag shows unit information of temperature. if bit 0 has value 1
+	 * then unit is Fahrenheit and Celsius otherwise Four bytes {1 to 4} after Flag bytes represent the temperature value in IEEE-11073 32-bit Float format
+	 */
+	private double decodeTemperature(byte[] data) throws Exception {
+		double temperatureValue;
+		byte flag = data[0];
+		byte exponential = data[4];
+		short firstOctet = convertNegativeByteToPositiveShort(data[1]);
+		short secondOctet = convertNegativeByteToPositiveShort(data[2]);
+		short thirdOctet = convertNegativeByteToPositiveShort(data[3]);
+		int mantissa = ((thirdOctet << SHIFT_LEFT_16BITS) | (secondOctet << SHIFT_LEFT_8BITS) | (firstOctet)) & HIDE_MSB_8BITS_OUT_OF_32BITS;
+		mantissa = getTwosComplimentOfNegativeMantissa(mantissa);
+		temperatureValue = (mantissa * Math.pow(10, exponential));
+
+		/*
+		 * Conversion of temperature unit from Fahrenheit to Celsius if unit is in Fahrenheit
+		 * Celsius = (Fahrenheit -32) 5/9
+		 */
+		if ((flag & FIRST_BIT_MASK) != 0) {
+			temperatureValue = (float) ((temperatureValue - 32) * (5 / 9.0));
+		}
+		return temperatureValue;
+	}
+	private short convertNegativeByteToPositiveShort(byte octet) {
+		if (octet < 0) {
+			return (short) (octet & HIDE_MSB_8BITS_OUT_OF_16BITS);
+		} else {
+			return octet;
+		}
+	}
+	private int getTwosComplimentOfNegativeMantissa(int mantissa) {
+		if ((mantissa & GET_BIT24) != 0) {
+			return ((((~mantissa) & HIDE_MSB_8BITS_OUT_OF_32BITS) + 1) * (-1));
+		} else {
+			return mantissa;
+		}
+	}
 
 }

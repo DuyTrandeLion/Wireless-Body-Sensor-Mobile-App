@@ -28,18 +28,23 @@
 	<dimen name="template_feature_title_long_margin">-62dp</dimen>
 
 	<string name="template_default_name">DEFAULT DEVICE</string>
-	<string name="template_section_header">Values</string>
-	<string name="template_value_title">Value</string>
-	<string name="template_unit_bpm">bpm</string>
+	<string name="template_section_header">Nhiệt độ</string>
+	<string name="template_value_title">Vị Trí</string>
+	<string name="template_unit_bpm">°C</string>
+	<string name="template_unit_fahrenheit">°F</string>
+
+	<!--<string name="hts_unit_celsius">°C</string>-->
+	<!--<string name="hts_unit_fahrenheit">°F</string>-->
+	<!--<string name="hts_unit_kelvin">°K</string>-->
 
 	<string name="template_notification_action_disconnect">Disconnect</string>
 	<string name="template_notification_connected_message">%s is connected.</string>
 
-	<string name="template_settings_units_title">Some data</string>
+	<string name="template_settings_units_title">Đơn vị</string>
 	<string name="template_settings_units_summary">%s</string>
 	<string-array name="template_settings_units">
-		<item>Variant A</item>
-		<item>Variant B</item>
+		<item>Celsius</item>
+		<item>Fahrenheit</item>
 	</string-array>
 	<string-array name="template_settings_units_values">
 		<item>0</item>

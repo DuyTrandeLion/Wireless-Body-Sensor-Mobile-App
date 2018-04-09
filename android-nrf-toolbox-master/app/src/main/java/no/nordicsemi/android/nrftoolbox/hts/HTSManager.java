@@ -101,6 +101,15 @@ public class HTSManager extends BleManager<HTSManagerCallbacks> {
 			} catch (Exception e) {
 				DebugLogger.e(TAG, "Invalid temperature value", e);
 			}
+//			int value;
+//			final int flags = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
+//			if ((flags & 0x01) > 0) {
+//				value = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, 1);
+//			} else {
+//				value = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 1);
+//			}
+//			//This will send callback to the Activity when new value is received from HR device
+//			mCallbacks.onHTValueReceived(gatt.getDevice(), value);
 		}
 	};
 
