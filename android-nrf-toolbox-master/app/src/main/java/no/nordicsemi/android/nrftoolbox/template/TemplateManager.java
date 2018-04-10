@@ -32,7 +32,9 @@ import java.util.UUID;
 
 import no.nordicsemi.android.ble.BleManager;
 import no.nordicsemi.android.log.Logger;
+import no.nordicsemi.android.nrftoolbox.R;
 import no.nordicsemi.android.nrftoolbox.parser.TemplateParser;
+import no.nordicsemi.android.nrftoolbox.parser.TemperatureTypeParser;
 
 /**
  * Modify to template manager to match your requirements.
@@ -53,10 +55,10 @@ public class TemplateManager extends BleManager<TemplateManagerCallbacks> {
 	private static final UUID MEASUREMENT_CHARACTERISTIC_UUID = UUID.fromString("00002A1C-0000-1000-8000-00805f9b34fb"); // TODO change the UUID to your match your characteristic
 
 	/** The characteristic UUID */
-	private static final UUID RHTS_SENSOR_LOCATION_CHARACTERISTIC_UUID = UUID.fromString("00002A1D-0000-1000-8000-00805f9b34fb");
+	private static final UUID RHTS_TEMPERATURE_TYPE_CHARACTERISTIC_UUID = UUID.fromString("00002a1d-0000-1000-8000-00805f9b34fb");
 
 	// TODO add more services and characteristics, if required
-	private BluetoothGattCharacteristic mCharacteristic;
+	private BluetoothGattCharacteristic mCharacteristic, mRHTSTypeCharacteristic;
 
 	public TemplateManager(final Context context) {
 		super(context);
@@ -76,6 +78,10 @@ public class TemplateManager extends BleManager<TemplateManagerCallbacks> {
 		protected Deque<Request> initGatt(final BluetoothGatt gatt) {
 			final LinkedList<Request> requests = new LinkedList<>();
 			// TODO initialize your device, enable required notifications and indications, write what needs to be written to start working
+//			requests.add(Request.newEnableNotificationsRequest(mCharacteristic));
+			if (mRHTSTypeCharacteristic != null) {
+				requests.add(Request.newReadRequest(mRHTSTypeCharacteristic));
+			}
 			requests.add(Request.newEnableNotificationsRequest(mCharacteristic));
 			return requests;
 		}
@@ -90,8 +96,18 @@ public class TemplateManager extends BleManager<TemplateManagerCallbacks> {
 		}
 
 		@Override
+		protected boolean isOptionalServiceSupported(final BluetoothGatt gatt) {
+			final BluetoothGattService service = gatt.getService(SERVICE_UUID);
+			if (service != null) {
+				mRHTSTypeCharacteristic = service.getCharacteristic(RHTS_TEMPERATURE_TYPE_CHARACTERISTIC_UUID);
+			}
+			return mRHTSTypeCharacteristic != null;
+		}
+
+		@Override
 		protected void onDeviceDisconnected() {
-			mCharacteristic = null;
+			mRHTSTypeCharacteristic = null;
+			mCharacteristic         = null;
 		}
 
 		// TODO implement data handlers. Methods below are called after the initialization is complete.
@@ -141,6 +157,18 @@ public class TemplateManager extends BleManager<TemplateManagerCallbacks> {
 		protected void onCharacteristicRead(final BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic) {
 			// TODO this method is called when the characteristic has been read
 			// This method may be removed from this class if not required
+			Logger.a(mLogSession, "\"" + TemperatureTypeParser.parse(characteristic) + "\" received");
+			final String temperatureType = getBodyTemperatureType(characteristic.getValue()[0]);
+			mCallbacks.onRHTSTemperatureTypeFound(gatt.getDevice(), temperatureType);
+		}
+		/**
+		 * This method will decode and return Heart rate sensor position on body
+		 */
+		private String getBodyTemperatureType(final byte bodyTemperatureTypeValue) {
+			final String[] locations = getContext().getResources().getStringArray(R.array.rhts_locations);
+			if (bodyTemperatureTypeValue > locations.length)
+				return getContext().getString(R.string.rhts_locations_other);
+			return locations[bodyTemperatureTypeValue];
 		}
 
 		@Override

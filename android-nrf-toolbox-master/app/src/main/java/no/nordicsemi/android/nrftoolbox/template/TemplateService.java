@@ -135,6 +135,11 @@ public class TemplateService extends BleProfileService implements TemplateManage
 		}
 	}
 
+	@Override
+	public void onRHTSTemperatureTypeFound(final BluetoothDevice device, String position) {
+
+	}
+
 	/**
 	 * Creates the notification
 	 * 

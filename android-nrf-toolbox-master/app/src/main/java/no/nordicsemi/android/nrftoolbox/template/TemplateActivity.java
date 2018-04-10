@@ -46,7 +46,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	private final String TAG = "ReplaceHTSActivity";
 
 	// TODO change view references to match your need
-	private TextView mValueView;
+	private TextView mValueView, mRHTSType;
 	private TextView mValueUnitView;
 
 	@Override
