@@ -106,18 +106,18 @@
 			</intent-filter>
 		</activity>
 
-		<activity
-			android:name="no.nordicsemi.android.nrftoolbox.hts.HTSActivity"
-			android:icon="@drawable/ic_hts_feature"
-			android:label="@string/hts_feature_title" >
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="no.nordicsemi.android.nrftoolbox.LAUNCHER" />
-			</intent-filter>
-		</activity>
-		<activity
-			android:name="no.nordicsemi.android.nrftoolbox.hts.settings.SettingsActivity"
-			android:label="@string/hts_settings_title" />
+		<!--<activity-->
+			<!--android:name="no.nordicsemi.android.nrftoolbox.hts.HTSActivity"-->
+			<!--android:icon="@drawable/ic_hts_feature"-->
+			<!--android:label="@string/hts_feature_title" >-->
+			<!--<intent-filter>-->
+				<!--<action android:name="android.intent.action.MAIN" />-->
+				<!--<category android:name="no.nordicsemi.android.nrftoolbox.LAUNCHER" />-->
+			<!--</intent-filter>-->
+		<!--</activity>-->
+		<!--<activity-->
+			<!--android:name="no.nordicsemi.android.nrftoolbox.hts.settings.SettingsActivity"-->
+			<!--android:label="@string/hts_settings_title" />-->
 
 		<activity
 			android:name="no.nordicsemi.android.nrftoolbox.bpm.BPMActivity"
@@ -162,16 +162,16 @@
 			</intent-filter>
 		</activity>
 
-		<service
-			android:name="no.nordicsemi.android.nrftoolbox.hts.HTSService"
-			android:label="@string/hts_feature_title" />
-		<service android:name=".wearable.MainWearableListenerService">
-			<intent-filter>
-				<action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
-				<action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
-				<data android:scheme="wear" android:host="*" android:pathPrefix="/nrftoolbox" />
-			</intent-filter>
-		</service>
+		<!--<service-->
+			<!--android:name="no.nordicsemi.android.nrftoolbox.hts.HTSService"-->
+			<!--android:label="@string/hts_feature_title" />-->
+		<!--<service android:name=".wearable.MainWearableListenerService">-->
+			<!--<intent-filter>-->
+				<!--<action android:name="com.google.android.gms.wearable.DATA_CHANGED" />-->
+				<!--<action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />-->
+				<!--<data android:scheme="wear" android:host="*" android:pathPrefix="/nrftoolbox" />-->
+			<!--</intent-filter>-->
+		<!--</service>-->
 
 		<provider android:name="no.nordicsemi.android.nrftoolbox.uart.UARTLocalLogContentProvider"
 			android:authorities="no.nordicsemi.android.nrftoolbox.uart.log"

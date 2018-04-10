@@ -41,6 +41,7 @@
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:layout_centerVertical="true"
+			android:visibility="gone"
 			android:layout_marginLeft="@dimen/template_feature_title_long_margin"
 			android:rotation="270"
 			android:text="@string/template_feature_title_long"
@@ -96,7 +97,7 @@
 
 			<TableLayout
 				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
+				android:layout_height="83dp"
 				android:padding="@dimen/feature_section_padding">
 
 				<TableRow
@@ -108,7 +109,7 @@
 						android:layout_height="match_parent"
 						android:layout_weight="1"
 						android:gravity="center_vertical"
-						android:text="@string/template_value_title"/>
+						android:text="@string/template_value_title" />
 
 					<no.nordicsemi.android.nrftoolbox.widget.TrebuchetBoldTextView
 						android:id="@+id/value"
@@ -117,15 +118,15 @@
 						android:freezesText="true"
 						android:gravity="right"
 						android:text="@string/not_available_value"
-						android:textSize="36sp"/>
+						android:textSize="36sp" />
 
 					<no.nordicsemi.android.nrftoolbox.widget.TrebuchetTextView
 						android:id="@+id/value_unit"
 						android:layout_width="45dp"
 						android:layout_height="match_parent"
 						android:freezesText="true"
-						android:gravity="bottom"
-						android:text="@string/template_unit_bpm"/>
+						android:gravity="center"
+						android:text="@string/template_unit_bpm" />
 				</TableRow>
 
 			</TableLayout>
