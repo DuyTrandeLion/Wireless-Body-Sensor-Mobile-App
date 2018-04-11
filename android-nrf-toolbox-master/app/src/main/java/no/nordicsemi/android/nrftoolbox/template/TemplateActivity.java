@@ -143,6 +143,8 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	private void setValueOnView(final float value) {
 		// TODO assign the value to a view
 		mValueView.setText(String.valueOf(value));
+		final String type = "Finger";
+		mRHTSType.setText(String.valueOf(type));
 	}
 
 	private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
