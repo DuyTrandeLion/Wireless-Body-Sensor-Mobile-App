@@ -104,12 +104,20 @@
 					android:layout_width="match_parent"
 					android:layout_height="wrap_content">
 
+					<!--<no.nordicsemi.android.nrftoolbox.widget.TrebuchetTextView-->
+						<!--android:layout_width="0dp"-->
+						<!--android:layout_height="match_parent"-->
+						<!--android:layout_weight="1"-->
+						<!--android:gravity="center_vertical"-->
+						<!--android:text="@string/template_value_title" />-->
 					<no.nordicsemi.android.nrftoolbox.widget.TrebuchetTextView
-						android:layout_width="0dp"
+						android:id="@+id/type"
+						android:layout_width="wrap_content"
 						android:layout_height="match_parent"
-						android:layout_weight="1"
-						android:gravity="center_vertical"
-						android:text="@string/template_value_title" />
+						android:freezesText="true"
+						android:gravity="right"
+						android:text="@string/not_available_value"
+						android:textSize="36sp"/>
 
 					<no.nordicsemi.android.nrftoolbox.widget.TrebuchetBoldTextView
 						android:id="@+id/value"

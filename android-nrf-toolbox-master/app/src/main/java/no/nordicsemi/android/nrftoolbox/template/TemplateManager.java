@@ -138,8 +138,8 @@ public class TemplateManager extends BleManager<TemplateManagerCallbacks> {
 
 			final int flags = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
 			int temperatureValue = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, 1);
-			final float displayTeperature = temperatureValue/100;
-			mCallbacks.onSampleValueReceived(gatt.getDevice(), temperatureValue);
+			final float displayTeperature = temperatureValue/(float)(100.0);
+			mCallbacks.onSampleValueReceived(gatt.getDevice(), displayTeperature);
 
 		}
 

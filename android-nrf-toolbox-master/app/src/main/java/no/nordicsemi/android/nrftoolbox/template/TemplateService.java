@@ -107,23 +107,8 @@ public class TemplateService extends BleProfileService implements TemplateManage
 		createNotification(R.string.template_notification_connected_message, 0);
 	}
 
-
-//	@Override
-//	public void onSampleValueReceived(final BluetoothDevice device, final int value) {
-//		final Intent broadcast = new Intent(BROADCAST_RHTS_MEASUREMENT);
-//		broadcast.putExtra(EXTRA_DEVICE, getBluetoothDevice());
-//		broadcast.putExtra(EXTRA_DATA, value);
-//		LocalBroadcastManager.getInstance(this).sendBroadcast(broadcast);
-//
-//		if (!mBinded) {
-//			// Here we may update the notification to display the current value.
-//			// TODO modify the notification here
-//		}
-//	}
-
-
 	@Override
-	public void onSampleValueReceived(final BluetoothDevice device, final int value) {
+	public void onSampleValueReceived(final BluetoothDevice device, final float value) {
 		final Intent broadcast = new Intent(BROADCAST_RHTS_MEASUREMENT);
 		broadcast.putExtra(EXTRA_DEVICE, getBluetoothDevice());
 		broadcast.putExtra(EXTRA_DATA, value);
