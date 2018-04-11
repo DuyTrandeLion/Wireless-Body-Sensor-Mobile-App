@@ -122,7 +122,15 @@ public class TemplateService extends BleProfileService implements TemplateManage
 
 	@Override
 	public void onRHTSTemperatureTypeFound(final BluetoothDevice device, String position) {
+		final Intent broadcast = new Intent(BROADCAST_RHTS_MEASUREMENT);
+		broadcast.putExtra(EXTRA_DEVICE, getBluetoothDevice());
+		broadcast.putExtra(EXTRA_DATA, position);
+		LocalBroadcastManager.getInstance(this).sendBroadcast(broadcast);
 
+		if (!mBinded) {
+			// Here we may update the notification to display the current value.
+			// TODO modify the notification here
+		}
 	}
 
 	/**
