@@ -100,11 +100,11 @@ public class HTSService extends BleProfileService implements HTSManagerCallbacks
 		// when the activity closes we need to show the notification that user is connected to the sensor
 		createNotification(R.string.hts_notification_connected_message, 0);
 	}
-
+	/* Diff 1 */
 	@Override
 	public void onHTValueReceived(final BluetoothDevice device, final double value) {
 		final Intent broadcast = new Intent(BROADCAST_HTS_MEASUREMENT);
-		broadcast.putExtra(EXTRA_DEVICE, device);
+		broadcast.putExtra(EXTRA_DEVICE, getBluetoothDevice());
 		broadcast.putExtra(EXTRA_TEMPERATURE, value);
 		LocalBroadcastManager.getInstance(this).sendBroadcast(broadcast);
 

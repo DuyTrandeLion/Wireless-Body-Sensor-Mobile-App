@@ -33,12 +33,21 @@ public interface TemplateManagerCallbacks extends BleManagerCallbacks {
 	// TODO add more callbacks. Callbacks are called when a data has been received/written to a remote device. This is the way how the manager notifies the activity about this event.
 
 	/**
+	 * Called when the sensor position information has been obtained from the sensor
+	 *
+	 * @param device  the bluetooth device from which the value was obtained
+	 * @param position
+	 *            the sensor position
+	 */
+	void onRHTSTemperatureTypeFound(final BluetoothDevice device, String position);
+
+	/**
 	 * Called when a value is received.
 	 *
 	 * @param device a device from which the value was obtained
 	 * @param value
 	 *            the new value
 	 */
-	void onSampleValueReceived(final BluetoothDevice device, int value);
+	void onSampleValueReceived(final BluetoothDevice device, float value);
 
 }

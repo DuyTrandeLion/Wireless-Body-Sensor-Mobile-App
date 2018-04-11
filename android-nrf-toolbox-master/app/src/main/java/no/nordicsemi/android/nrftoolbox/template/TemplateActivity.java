@@ -43,10 +43,10 @@ import no.nordicsemi.android.nrftoolbox.template.settings.SettingsActivity;
  */
 public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateService.TemplateBinder> {
 	@SuppressWarnings("unused")
-	private final String TAG = "TemplateActivity";
+	private final String TAG = "ReplaceHTSActivity";
 
 	// TODO change view references to match your need
-	private TextView mValueView;
+	private TextView mValueView, mRHTSType;
 	private TextView mValueUnitView;
 
 	@Override
@@ -59,6 +59,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	private void setGUI() {
 		// TODO assign your views to fields
 		mValueView = findViewById(R.id.value);
+		mRHTSType  = findViewById(R.id.type);
 		mValueUnitView = findViewById(R.id.value_unit);
 	}
 
@@ -77,6 +78,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	protected void setDefaultUI() {
 		// TODO clear your UI
 		mValueView.setText(R.string.not_available_value);
+		mRHTSType.setText(R.string.not_available_value);
 	}
 
 	@Override
@@ -138,7 +140,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		// this may notify user or show some views
 	}
 
-	private void setValueOnView(final int value) {
+	private void setValueOnView(final float value) {
 		// TODO assign the value to a view
 		mValueView.setText(String.valueOf(value));
 	}
@@ -148,8 +150,8 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		public void onReceive(final Context context, final Intent intent) {
 			final String action = intent.getAction();
 
-			if (TemplateService.BROADCAST_TEMPLATE_MEASUREMENT.equals(action)) {
-				final int value = intent.getIntExtra(TemplateService.EXTRA_DATA, 0);
+			if (TemplateService.BROADCAST_RHTS_MEASUREMENT.equals(action)) {
+				final float value = intent.getFloatExtra(TemplateService.EXTRA_DATA, 0);
 				// Update GUI
 				setValueOnView(value);
 			}
@@ -158,7 +160,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 
 	private static IntentFilter makeIntentFilter() {
 		final IntentFilter intentFilter = new IntentFilter();
-		intentFilter.addAction(TemplateService.BROADCAST_TEMPLATE_MEASUREMENT);
+		intentFilter.addAction(TemplateService.BROADCAST_RHTS_MEASUREMENT);
 		return intentFilter;
 	}
 }

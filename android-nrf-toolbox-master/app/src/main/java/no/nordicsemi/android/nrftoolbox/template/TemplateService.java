@@ -41,7 +41,7 @@ import no.nordicsemi.android.nrftoolbox.ToolboxApplication;
 import no.nordicsemi.android.nrftoolbox.profile.BleProfileService;
 
 public class TemplateService extends BleProfileService implements TemplateManagerCallbacks {
-	public static final String BROADCAST_TEMPLATE_MEASUREMENT = "no.nordicsemi.android.nrftoolbox.template.BROADCAST_MEASUREMENT";
+	public static final String BROADCAST_RHTS_MEASUREMENT = "no.nordicsemi.android.nrftoolbox.rhts.BROADCAST_RHTS_MEASUREMENT";
 	public static final String EXTRA_DATA = "no.nordicsemi.android.nrftoolbox.template.EXTRA_DATA";
 
 	private final static String ACTION_DISCONNECT = "no.nordicsemi.android.nrftoolbox.template.ACTION_DISCONNECT";
@@ -108,10 +108,23 @@ public class TemplateService extends BleProfileService implements TemplateManage
 	}
 
 	@Override
-	public void onSampleValueReceived(final BluetoothDevice device, final int value) {
-		final Intent broadcast = new Intent(BROADCAST_TEMPLATE_MEASUREMENT);
+	public void onSampleValueReceived(final BluetoothDevice device, final float value) {
+		final Intent broadcast = new Intent(BROADCAST_RHTS_MEASUREMENT);
 		broadcast.putExtra(EXTRA_DEVICE, getBluetoothDevice());
 		broadcast.putExtra(EXTRA_DATA, value);
+		LocalBroadcastManager.getInstance(this).sendBroadcast(broadcast);
+
+		if (!mBinded) {
+			// Here we may update the notification to display the current value.
+			// TODO modify the notification here
+		}
+	}
+
+	@Override
+	public void onRHTSTemperatureTypeFound(final BluetoothDevice device, String position) {
+		final Intent broadcast = new Intent(BROADCAST_RHTS_MEASUREMENT);
+		broadcast.putExtra(EXTRA_DEVICE, getBluetoothDevice());
+		broadcast.putExtra(EXTRA_DATA, position);
 		LocalBroadcastManager.getInstance(this).sendBroadcast(broadcast);
 
 		if (!mBinded) {
