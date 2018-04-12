@@ -30,7 +30,7 @@
 	<string name="template_default_name">DEFAULT DEVICE</string>
 	<string name="template_section_header">Nhiệt độ</string>
 	<string name="template_value_title">Vị Trí</string>
-	<string name="template_unit_bpm">°C</string>
+	<string name="template_unit_celsius">°C</string>
 	<string name="template_unit_fahrenheit">°F</string>
 
 	<!--<string name="hts_unit_celsius">°C</string>-->
