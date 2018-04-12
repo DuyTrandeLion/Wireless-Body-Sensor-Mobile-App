@@ -127,15 +127,6 @@ public class TemplateManager extends BleManager<TemplateManagerCallbacks> {
 
 			Logger.a(mLogSession, "\"" + TemplateParser.parse(characteristic) + "\" received");
 
-//			int value;
-//			final int flags = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
-//			if ((flags & 0x01) > 0) {
-//				value = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, 1);
-//			} else {
-//				value = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, 1);
-//			}
-			//This will send callback to the Activity when new value is received from HR device
-
 			final int flags = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
 			int temperatureValue = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, 1);
 			final float displayTeperature = temperatureValue/(float)(100.0);

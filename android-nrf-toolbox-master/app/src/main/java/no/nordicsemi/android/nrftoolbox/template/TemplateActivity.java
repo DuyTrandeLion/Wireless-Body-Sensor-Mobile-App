@@ -29,11 +29,15 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.Menu;
+import android.support.annotation.NonNull;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
+import org.achartengine.GraphicalView;
 import java.util.UUID;
 
 import no.nordicsemi.android.nrftoolbox.R;
+import no.nordicsemi.android.nrftoolbox.hrs.HRSManagerCallbacks;
 import no.nordicsemi.android.nrftoolbox.profile.BleProfileService;
 import no.nordicsemi.android.nrftoolbox.profile.BleProfileServiceReadyActivity;
 import no.nordicsemi.android.nrftoolbox.template.settings.SettingsActivity;
@@ -140,11 +144,17 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		// this may notify user or show some views
 	}
 
-	private void setValueOnView(final float value) {
+//	private void setValueOnView(final float value) {
+//		// TODO assign the value to a view
+//		mValueView.setText(String.valueOf(value));
+//		final String type = "Finger";
+//		mRHTSType.setText(String.valueOf(type));
+//	}
+	private void setValueOnView(final float value, final String type) {
 		// TODO assign the value to a view
 		mValueView.setText(String.valueOf(value));
+		mRHTSType.setText(String.valueOf(type));
 	}
-
 	private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(final Context context, final Intent intent) {
@@ -153,7 +163,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 			if (TemplateService.BROADCAST_RHTS_MEASUREMENT.equals(action)) {
 				final float value = intent.getFloatExtra(TemplateService.EXTRA_DATA, 0);
 				// Update GUI
-				setValueOnView(value);
+				setValueOnView(value, TemplateService.displayTemperatureType);
 			}
 		}
 	};
