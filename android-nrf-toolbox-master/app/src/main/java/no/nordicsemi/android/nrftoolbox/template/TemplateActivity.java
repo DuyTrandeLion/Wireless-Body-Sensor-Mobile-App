@@ -26,7 +26,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.graphics.Point;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.Menu;
 import android.support.annotation.NonNull;
@@ -38,9 +41,11 @@ import java.util.UUID;
 
 import no.nordicsemi.android.nrftoolbox.R;
 import no.nordicsemi.android.nrftoolbox.hrs.HRSManagerCallbacks;
+import no.nordicsemi.android.nrftoolbox.hrs.LineGraphView;
 import no.nordicsemi.android.nrftoolbox.profile.BleProfileService;
 import no.nordicsemi.android.nrftoolbox.profile.BleProfileServiceReadyActivity;
 import no.nordicsemi.android.nrftoolbox.template.settings.SettingsActivity;
+import no.nordicsemi.android.nrftoolbox.template.settings.SettingsFragment;
 
 /**
  * Modify the Template Activity to match your needs.
@@ -49,9 +54,24 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	@SuppressWarnings("unused")
 	private final String TAG = "ReplaceHTSActivity";
 
+	private final static String GRAPH_STATUS = "graph_status";
+	private final static String GRAPH_COUNTER = "graph_counter";
+	private final static String RHTS_VALUE = "rhts_value";
+
+	private final static float MAX_HTS_VALUE = (float)150.0;
+	private final static float MIN_POSITIVE_VALUE = (float)0.0;
+	private final static int REFRESH_INTERVAL = 500; // 1 second interval
+
+	private static int UINT_ON_VIEW;
+
 	// TODO change view references to match your need
 	private TextView mValueView, mRHTSType;
 	private TextView mValueUnitView;
+
+	private GraphicalView mGraphView;
+	private LineGraphView mLineGraph;
+
+	private float mCounter = 0;
 
 	@Override
 	protected void onCreateView(final Bundle savedInstanceState) {
@@ -65,6 +85,13 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		mValueView = findViewById(R.id.value);
 		mRHTSType  = findViewById(R.id.type);
 		mValueUnitView = findViewById(R.id.value_unit);
+//		showGraph();
+	}
+
+	private void showGraph() {
+		mGraphView = mLineGraph.getView(this);
+		ViewGroup layout = findViewById(R.id.graph_rhts);
+		layout.addView(mGraphView);
 	}
 
 	@Override
@@ -83,6 +110,22 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		// TODO clear your UI
 		mValueView.setText(R.string.not_available_value);
 		mRHTSType.setText(R.string.not_available_value);
+		setUnits();
+	}
+
+	private void setUnits() {
+		final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+		final int unit = Integer.parseInt(preferences.getString(SettingsFragment.SETTINGS_TEMP_UNIT, String.valueOf(SettingsFragment.SETTINGS_VARIANT_DEFAULT)));
+		UINT_ON_VIEW = unit;
+		switch (unit) {
+			case SettingsFragment.SETTINGS_VARIANT_C:
+				mValueUnitView.setText(R.string.template_unit_celsius);
+				break;
+			case SettingsFragment.SETTINGS_VARIANT_F:
+				mValueUnitView.setText(R.string.template_unit_fahrenheit);
+				break;
+			default: break;
+		}
 	}
 
 	@Override
@@ -152,7 +195,29 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 //	}
 	private void setValueOnView(final float value, final String type) {
 		// TODO assign the value to a view
-		mValueView.setText(String.valueOf(value));
+//		final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+//		final int unit = Integer.parseInt(preferences.getString(SettingsFragment.SETTINGS_TEMP_UNIT, String.valueOf(SettingsFragment.SETTINGS_VARIANT_DEFAULT)));
+//		switch (unit) {
+//			case SettingsFragment.SETTINGS_VARIANT_C:
+//				mValueView.setText(String.valueOf(value));
+//				break;
+//			case SettingsFragment.SETTINGS_VARIANT_F:
+//				mValueView.setText(String.valueOf(value * 1.8 + 32));
+//				break;
+//			default: break;
+//		}
+		setUnits();
+		float displayValue = 0;
+		switch (UINT_ON_VIEW) {
+			case SettingsFragment.SETTINGS_VARIANT_C:
+				displayValue = value + (float)0.0;
+				break;
+			case SettingsFragment.SETTINGS_VARIANT_F:
+				displayValue = value * (float)1.8 + (float)32.0;
+				break;
+			default: break;
+		}
+		mValueView.setText(String.valueOf(displayValue));
 		mRHTSType.setText(String.valueOf(type));
 	}
 	private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
@@ -173,4 +238,5 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		intentFilter.addAction(TemplateService.BROADCAST_RHTS_MEASUREMENT);
 		return intentFilter;
 	}
+
 }

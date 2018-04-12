@@ -28,10 +28,11 @@ import android.preference.PreferenceFragment;
 import no.nordicsemi.android.nrftoolbox.R;
 
 public class SettingsFragment extends PreferenceFragment {
-	public static final String SETTINGS_DATA = "settings_template_data"; // TODO values matching those in settings_template.xml file in /res/xml
-	public static final int SETTINGS_VARIANT_A = 0;
-	public static final int SETTINGS_VARIANT_B = 1;
-	public static final int SETTINGS_VARIANT_DEFAULT = SETTINGS_VARIANT_A;
+	public static final String SETTINGS_TEMP_UNIT = "settings_template_data";
+	// TODO values matching those in settings_template.xml file in /res/xml
+	public static final int SETTINGS_VARIANT_C = 0;
+	public static final int SETTINGS_VARIANT_F = 1;
+	public static final int SETTINGS_VARIANT_DEFAULT = SETTINGS_VARIANT_C;
 
 	@Override
 	public void onCreate(final Bundle savedInstanceState) {
