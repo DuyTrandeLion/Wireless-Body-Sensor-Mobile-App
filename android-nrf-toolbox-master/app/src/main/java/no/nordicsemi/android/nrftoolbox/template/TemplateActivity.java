@@ -26,6 +26,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.Menu;
@@ -38,6 +39,7 @@ import java.util.UUID;
 
 import no.nordicsemi.android.nrftoolbox.R;
 import no.nordicsemi.android.nrftoolbox.hrs.HRSManagerCallbacks;
+import no.nordicsemi.android.nrftoolbox.hrs.LineGraphView;
 import no.nordicsemi.android.nrftoolbox.profile.BleProfileService;
 import no.nordicsemi.android.nrftoolbox.profile.BleProfileServiceReadyActivity;
 import no.nordicsemi.android.nrftoolbox.template.settings.SettingsActivity;
@@ -49,9 +51,22 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	@SuppressWarnings("unused")
 	private final String TAG = "ReplaceHTSActivity";
 
+	private final static String GRAPH_STATUS = "graph_status";
+	private final static String GRAPH_COUNTER = "graph_counter";
+	private final static String RHTS_VALUE = "rhts_value";
+
+	private final static float MAX_HTS_VALUE = (float)150.0;
+	private final static float MIN_POSITIVE_VALUE = (float)0.0;
+	private final static int REFRESH_INTERVAL = 500; // 1 second interval
+
 	// TODO change view references to match your need
 	private TextView mValueView, mRHTSType;
 	private TextView mValueUnitView;
+
+	private GraphicalView mGraphView;
+	private LineGraphView mLineGraph;
+
+	private float mCounter = 0;
 
 	@Override
 	protected void onCreateView(final Bundle savedInstanceState) {
@@ -65,6 +80,13 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		mValueView = findViewById(R.id.value);
 		mRHTSType  = findViewById(R.id.type);
 		mValueUnitView = findViewById(R.id.value_unit);
+		showGraph();
+	}
+
+	private void showGraph() {
+		mGraphView = mLineGraph.getView(this);
+		ViewGroup layout = findViewById(R.id.graph_rhts);
+		layout.addView(mGraphView);
 	}
 
 	@Override
@@ -173,4 +195,5 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		intentFilter.addAction(TemplateService.BROADCAST_RHTS_MEASUREMENT);
 		return intentFilter;
 	}
+
 }
