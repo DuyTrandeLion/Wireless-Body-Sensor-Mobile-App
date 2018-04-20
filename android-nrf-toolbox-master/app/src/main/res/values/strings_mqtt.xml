@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mqtt_feature_title">C. HÌNH MẠNG</string>
+    <string name="mqtt_device_name">Tên thiết bị</string>
+    <string name="mqtt_auth_method">Tên đăng nhập</string>
+    <string name="mqtt_auth_token">Mật khẩu</string>
+    <string name="mqtt_port">Cổng kết nối</string>
+
+    <string name="mqtt_display_send_temperature">Nhiệt độ</string>
+    <string name="mqtt_display_send_temperature_type">Vị trí nhiệt độ</string>
+    <string name="mqtt_display_send_heart_rate">Nhịp tim</string>
+    <string name="mqtt_display_send_heart_rate_location">Vị trí đo nhịp tim</string>
+
+    <string name="mqtt_about_text">This is the tab where users can setup MQTT name info.</string>
+</resources>
