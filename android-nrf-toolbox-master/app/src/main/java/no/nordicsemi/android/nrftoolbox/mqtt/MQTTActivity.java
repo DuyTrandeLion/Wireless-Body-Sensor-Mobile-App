@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.os.CountDownTimer;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
@@ -15,6 +16,9 @@ import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 
 import no.nordicsemi.android.nrftoolbox.R;
 
@@ -33,8 +37,11 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
     String mqttAuthToken;
     int    mqttPort;
 
-    private static MqttAndroidClient mqttClient;
+    boolean isUploading = false;
+
+    private static MqttAndroidClient  mqttClient;
     private static MqttConnectOptions mqttOptions;
+    private static CountDownTimer     publishTimer;
 
     // Textview
     TextView txtInputDeviceName;
@@ -46,6 +53,8 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
     Button connectServerButton;
     Button uploadDataButton;
 
+    // Test data
+    long publishCounterValue = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,12 +64,13 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
         txtInputDeviceName  = findViewById(R.id.input_device_name);
         txtInputAuthMethod  = findViewById(R.id.input_auth_method);
         txtInputAuthToken   = findViewById(R.id.input_auth_token);
-        txtInputPort        = findViewById(R.id.input_mqtt_port);
+//        txtInputPort        = findViewById(R.id.input_mqtt_port);
 
         connectServerButton = findViewById(R.id.action_server_connect);
         uploadDataButton    = findViewById(R.id.action_upload);
         connectServerButton.setOnClickListener(this);
         uploadDataButton.setOnClickListener(this);
+
     }
 
     @Override
@@ -70,7 +80,7 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
             mqttDeviceName = txtInputDeviceName.getText().toString();
             mqttAuthMethod = txtInputAuthMethod.getText().toString();
             mqttAuthToken  = txtInputAuthToken.getText().toString();
-            mqttPort       = Integer.parseInt(txtInputPort.getText().toString());
+//            mqttPort       = Integer.parseInt(txtInputPort.getText().toString());
             mqttClientID   = "d:" + mqttOrganization + ":" + mqttDeviceType + ":" + mqttDeviceName;
             serverConnectClicked(v);
         }
@@ -113,7 +123,9 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
             MQTTToken.setActionCallback(new IMqttActionListener() {
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
-
+                    String payload = "{" + "\"Client ID\":" + "\"" + mqttClientID + "\"" + "}";
+                    mqttPublish(payload);
+                    connectServerButton.setText("DISCONNECT");
                 }
 
                 @Override
@@ -126,9 +138,10 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void mqttPublish(String message) {
+
+    private void mqttPublish(String payload) {
         try {
-            mqttClient.publish(mqttEventTopic, message.getBytes(), 0, false);
+            mqttClient.publish(mqttEventTopic, payload.getBytes(), 0, false);
         } catch (MqttException e) {
             e.printStackTrace();
         }
@@ -138,12 +151,39 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
         // Connect to server
         createMQTTClient();
         mqttConnect();
-        String say_hello = "Hello from Duy";
-//        mqttPublish(say_hello);
-        int a = 7;
     }
 
     void uploadClicked(final View view) {
         // Start uploading
+        if (mqttClient.isConnected()) {
+            if (!isUploading) {
+                isUploading  = true;
+                uploadDataButton.setText("UPLOADING");
+                String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(7000) + "}}";
+                mqttPublish(timePayload);
+                publishTimer = new CountDownTimer(11000, 1000) {
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+                        publishCounterValue++;
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(publishCounterValue) + "}}";
+                        mqttPublish(timePayload);
+                        // Test
+                        if ((publishCounterValue % 100) == 0) {
+                            publishCounterValue = 0;
+                        }
+                        publishTimer.start();
+                    }
+                }.start();
+            }
+            else {
+                publishTimer.cancel();
+                isUploading = false;
+                uploadDataButton.setText("UPLOAD");
+            }
+        }
     }
 }
