@@ -243,6 +243,16 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    boolean checkMQTTConnectStatus() {
+        if (mqttClient == null) {
+            return false;
+        }
+        else if (!mqttClient.isConnected()) {
+            return false;
+        }
+        return true;
+    }
+
     void uploadClicked(final View view) {
         // Start uploading
         if (checkMQTTConnectStatus()) {
