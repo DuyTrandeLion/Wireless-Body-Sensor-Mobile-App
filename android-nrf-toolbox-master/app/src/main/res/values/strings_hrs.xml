@@ -28,7 +28,7 @@
     
     <string name="hrs_default_name">DEFAULT HRM</string>
     <string name="hrs_value_unit">bpm</string>
-    <string name="hrs_position_label">sensor position</string>
+    <string name="hrs_position_label">Vị trí đo</string>
     
     <string-array name="hrs_locations">
         <item>Other</item>
