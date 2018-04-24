@@ -39,8 +39,8 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
 
     boolean isUploading = false;
 
-    private static MqttAndroidClient  mqttClient;
-    private static MqttConnectOptions mqttOptions;
+    private static MqttAndroidClient  mqttClient  = null;
+    private static MqttConnectOptions mqttOptions = null;
     private static CountDownTimer     publishTimer;
 
     // Textview
@@ -92,6 +92,7 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
     private void createMQTTClient() {
         mqttClient = new MqttAndroidClient(this.getApplicationContext(), mqttHostName, mqttClientID);
         mqttOptions = new MqttConnectOptions();
+
         mqttOptions.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1);
         mqttOptions.setUserName(mqttAuthMethod);
         mqttOptions.setPassword(mqttAuthToken.toCharArray());
@@ -153,14 +154,25 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
         mqttConnect();
     }
 
+    boolean checkMQTTConnectStatus() {
+        if (mqttClient == null) {
+            return false;
+        }
+        else if (!mqttClient.isConnected()) {
+            return false;
+        }
+        return true;
+    }
+
     void uploadClicked(final View view) {
         // Start uploading
-        if (mqttClient.isConnected()) {
+        if (checkMQTTConnectStatus()) {
             if (!isUploading) {
                 isUploading  = true;
                 uploadDataButton.setText("UPLOADING");
                 String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(7000) + "}}";
                 mqttPublish(timePayload);
+
                 publishTimer = new CountDownTimer(11000, 1000) {
                     @Override
                     public void onTick(long millisUntilFinished) {
@@ -185,5 +197,6 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
                 uploadDataButton.setText("UPLOAD");
             }
         }
+
     }
 }
