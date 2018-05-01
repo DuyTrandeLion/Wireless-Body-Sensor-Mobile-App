@@ -29,8 +29,6 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
     private String mqttEventTopic   = "iot-2/evt/status/fmt/json";
     private int    mqttKeepAlive    = 10;                               /* in sec */
 
-    private boolean isClientConnected = false;
-
     String mqttHostName             = "tcp://" + mqttOrganization + mqttURL;
     String mqttClientID;
 
@@ -54,6 +52,11 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
     // Button
     Button connectServerButton;
     Button uploadDataButton;
+
+    // Save state
+    String mqttDeviceNameState;
+    String mqttAuthMethodState;
+    String mqttAuthTokenState;
 
     // Test data
     long publishCounterValue = 0;
@@ -96,6 +99,31 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
         else if (v.getId() == R.id.action_upload) {
             uploadClicked(v);
         }
+    }
+
+    // This callback is called only when there is a saved instance that is previously saved by using
+    // onSaveInstanceState(). We restore some state in onCreate(), while we can optionally restore
+    // other state here, possibly usable after onStart() has completed.
+    // The savedInstanceState Bundle is same as the one used in onCreate().
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        txtInputDeviceName.setText(mqttDeviceNameState);
+        txtInputAuthMethod.setText(mqttAuthMethodState);
+        txtInputAuthToken.setText(mqttAuthTokenState);
+
+        mqttDeviceName = mqttDeviceNameState;
+        mqttAuthMethod = mqttAuthMethodState;
+        mqttAuthToken  = mqttAuthTokenState;
+    }
+
+    // invoked when the activity may be temporarily destroyed, save the instance state here
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putString(mqttDeviceNameState, mqttDeviceName);
+        outState.putString(mqttAuthMethodState, mqttAuthMethod);
+        outState.putString(mqttAuthTokenState, mqttAuthToken);
+
+        super.onSaveInstanceState(outState);
     }
 
     private boolean checkValidInfo() {
@@ -149,7 +177,6 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
                     String payload = "{" + "\"Client ID\":" + "\"" + mqttClientID + "\"" + "}";
                     mqttPublish(payload);
                     connectServerButton.setText(R.string.action_disconnect);
-                    isClientConnected = true;
                 }
 
                 @Override
@@ -169,7 +196,6 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
                     connectServerButton.setText(R.string.action_connect);
-                    isClientConnected = false;
                 }
 
                 @Override
