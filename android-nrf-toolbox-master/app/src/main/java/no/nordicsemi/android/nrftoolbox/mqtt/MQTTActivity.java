@@ -29,6 +29,8 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
     private String mqttEventTopic   = "iot-2/evt/status/fmt/json";
     private int    mqttKeepAlive    = 10;                               /* in sec */
 
+    private boolean isClientConnected = false;
+
     String mqttHostName             = "tcp://" + mqttOrganization + mqttURL;
     String mqttClientID;
 
@@ -81,12 +83,32 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
             mqttAuthMethod = txtInputAuthMethod.getText().toString();
             mqttAuthToken  = txtInputAuthToken.getText().toString();
 //            mqttPort       = Integer.parseInt(txtInputPort.getText().toString());
-            mqttClientID   = "d:" + mqttOrganization + ":" + mqttDeviceType + ":" + mqttDeviceName;
-            serverConnectClicked(v);
+//            mqttClientID   = "d:" + mqttOrganization + ":" + mqttDeviceType + ":" + mqttDeviceName;
+//            serverConnectClicked(v);
+            if (!checkValidInfo()) {
+                Toast.makeText(MQTTActivity.this, "Please fill in the blanks first", Toast.LENGTH_LONG).show();
+            }
+            else {
+                mqttClientID   = "d:" + mqttOrganization + ":" + mqttDeviceType + ":" + mqttDeviceName;
+                serverConnectClicked(v);
+            }
         }
         else if (v.getId() == R.id.action_upload) {
             uploadClicked(v);
         }
+    }
+
+    private boolean checkValidInfo() {
+        if (mqttDeviceName.equals("")) {
+            return false;
+        }
+        if (mqttAuthMethod.equals("")) {
+            return false;
+        }
+        if (mqttAuthToken.equals("")) {
+            return false;
+        }
+        return true;
     }
 
     private void createMQTTClient() {
@@ -126,7 +148,8 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
                 public void onSuccess(IMqttToken asyncActionToken) {
                     String payload = "{" + "\"Client ID\":" + "\"" + mqttClientID + "\"" + "}";
                     mqttPublish(payload);
-                    connectServerButton.setText("DISCONNECT");
+                    connectServerButton.setText(R.string.action_disconnect);
+                    isClientConnected = true;
                 }
 
                 @Override
@@ -139,6 +162,26 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    private void mqttDisconnect() {
+        try {
+            IMqttToken disconToken = mqttClient.disconnect();
+            disconToken.setActionCallback(new IMqttActionListener() {
+                @Override
+                public void onSuccess(IMqttToken asyncActionToken) {
+                    connectServerButton.setText(R.string.action_connect);
+                    isClientConnected = false;
+                }
+
+                @Override
+                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+
+                }
+            });
+        } catch (MqttException e) {
+            e.printStackTrace();
+        }
+
+    }
 
     private void mqttPublish(String payload) {
         try {
@@ -146,12 +189,6 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
         } catch (MqttException e) {
             e.printStackTrace();
         }
-    }
-
-    void serverConnectClicked(final View view) {
-        // Connect to server
-        createMQTTClient();
-        mqttConnect();
     }
 
     boolean checkMQTTConnectStatus() {
@@ -164,12 +201,28 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
         return true;
     }
 
+    void serverConnectClicked(final View view) {
+        // Connect to server
+        if (!checkMQTTConnectStatus()) {
+            createMQTTClient();
+            mqttConnect();
+        }
+        else {
+            if (isUploading) {
+                Toast.makeText(MQTTActivity.this, "Please stop uploading first", Toast.LENGTH_LONG).show();
+            }
+            else {
+                mqttDisconnect();
+            }
+        }
+    }
+
     void uploadClicked(final View view) {
         // Start uploading
         if (checkMQTTConnectStatus()) {
             if (!isUploading) {
                 isUploading  = true;
-                uploadDataButton.setText("UPLOADING");
+                uploadDataButton.setText(R.string.action_uploading);
                 String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(7000) + "}}";
                 mqttPublish(timePayload);
 
@@ -194,7 +247,7 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
             else {
                 publishTimer.cancel();
                 isUploading = false;
-                uploadDataButton.setText("UPLOAD");
+                uploadDataButton.setText(R.string.action_upload);
             }
         }
 
