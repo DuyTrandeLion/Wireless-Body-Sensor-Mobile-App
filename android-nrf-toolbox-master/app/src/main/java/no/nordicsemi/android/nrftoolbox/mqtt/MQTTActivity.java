@@ -53,6 +53,11 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
     Button connectServerButton;
     Button uploadDataButton;
 
+    // Save state
+    String mqttDeviceNameState;
+    String mqttAuthMethodState;
+    String mqttAuthTokenState;
+
     // Test data
     long publishCounterValue = 0;
 
@@ -81,12 +86,57 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
             mqttAuthMethod = txtInputAuthMethod.getText().toString();
             mqttAuthToken  = txtInputAuthToken.getText().toString();
 //            mqttPort       = Integer.parseInt(txtInputPort.getText().toString());
-            mqttClientID   = "d:" + mqttOrganization + ":" + mqttDeviceType + ":" + mqttDeviceName;
-            serverConnectClicked(v);
+//            mqttClientID   = "d:" + mqttOrganization + ":" + mqttDeviceType + ":" + mqttDeviceName;
+//            serverConnectClicked(v);
+            if (!checkValidInfo()) {
+                Toast.makeText(MQTTActivity.this, "Please fill in the blanks first", Toast.LENGTH_LONG).show();
+            }
+            else {
+                mqttClientID   = "d:" + mqttOrganization + ":" + mqttDeviceType + ":" + mqttDeviceName;
+                serverConnectClicked(v);
+            }
         }
         else if (v.getId() == R.id.action_upload) {
             uploadClicked(v);
         }
+    }
+
+    // This callback is called only when there is a saved instance that is previously saved by using
+    // onSaveInstanceState(). We restore some state in onCreate(), while we can optionally restore
+    // other state here, possibly usable after onStart() has completed.
+    // The savedInstanceState Bundle is same as the one used in onCreate().
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        txtInputDeviceName.setText(mqttDeviceNameState);
+        txtInputAuthMethod.setText(mqttAuthMethodState);
+        txtInputAuthToken.setText(mqttAuthTokenState);
+
+        mqttDeviceName = mqttDeviceNameState;
+        mqttAuthMethod = mqttAuthMethodState;
+        mqttAuthToken  = mqttAuthTokenState;
+    }
+
+    // invoked when the activity may be temporarily destroyed, save the instance state here
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putString(mqttDeviceNameState, mqttDeviceName);
+        outState.putString(mqttAuthMethodState, mqttAuthMethod);
+        outState.putString(mqttAuthTokenState, mqttAuthToken);
+
+        super.onSaveInstanceState(outState);
+    }
+
+    private boolean checkValidInfo() {
+        if (mqttDeviceName.equals("")) {
+            return false;
+        }
+        if (mqttAuthMethod.equals("")) {
+            return false;
+        }
+        if (mqttAuthToken.equals("")) {
+            return false;
+        }
+        return true;
     }
 
     private void createMQTTClient() {
@@ -126,7 +176,7 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
                 public void onSuccess(IMqttToken asyncActionToken) {
                     String payload = "{" + "\"Client ID\":" + "\"" + mqttClientID + "\"" + "}";
                     mqttPublish(payload);
-                    connectServerButton.setText("DISCONNECT");
+                    connectServerButton.setText(R.string.action_disconnect);
                 }
 
                 @Override
@@ -139,6 +189,25 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    private void mqttDisconnect() {
+        try {
+            IMqttToken disconToken = mqttClient.disconnect();
+            disconToken.setActionCallback(new IMqttActionListener() {
+                @Override
+                public void onSuccess(IMqttToken asyncActionToken) {
+                    connectServerButton.setText(R.string.action_connect);
+                }
+
+                @Override
+                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+
+                }
+            });
+        } catch (MqttException e) {
+            e.printStackTrace();
+        }
+
+    }
 
     private void mqttPublish(String payload) {
         try {
@@ -146,12 +215,6 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
         } catch (MqttException e) {
             e.printStackTrace();
         }
-    }
-
-    void serverConnectClicked(final View view) {
-        // Connect to server
-        createMQTTClient();
-        mqttConnect();
     }
 
     boolean checkMQTTConnectStatus() {
@@ -164,12 +227,28 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
         return true;
     }
 
+    void serverConnectClicked(final View view) {
+        // Connect to server
+        if (!checkMQTTConnectStatus()) {
+            createMQTTClient();
+            mqttConnect();
+        }
+        else {
+            if (isUploading) {
+                Toast.makeText(MQTTActivity.this, "Please stop uploading first", Toast.LENGTH_LONG).show();
+            }
+            else {
+                mqttDisconnect();
+            }
+        }
+    }
+
     void uploadClicked(final View view) {
         // Start uploading
         if (checkMQTTConnectStatus()) {
             if (!isUploading) {
                 isUploading  = true;
-                uploadDataButton.setText("UPLOADING");
+                uploadDataButton.setText(R.string.action_uploading);
                 String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(7000) + "}}";
                 mqttPublish(timePayload);
 
@@ -194,7 +273,7 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
             else {
                 publishTimer.cancel();
                 isUploading = false;
-                uploadDataButton.setText("UPLOAD");
+                uploadDataButton.setText(R.string.action_upload);
             }
         }
 
