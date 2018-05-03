@@ -34,6 +34,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.view.Menu;
 import android.support.annotation.NonNull;
 import android.view.ViewGroup;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import org.achartengine.GraphicalView;
