@@ -128,10 +128,17 @@ public class TemplateManager extends BleManager<TemplateManagerCallbacks> {
 			Logger.a(mLogSession, "\"" + TemplateParser.parse(characteristic) + "\" received");
 
 			final int flags = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
-			int temperatureValue = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, 1);
-			final float displayTeperature = temperatureValue/(float)(100.0);
-			mCallbacks.onSampleValueReceived(gatt.getDevice(), displayTeperature);
+			//int temperatureValue = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, 1);
+			//final float displayTeperature = temperatureValue/(float)(100.0);
+			final float combinedTemperatureAndHR    = characteristic.getFloatValue(BluetoothGattCharacteristic.FORMAT_FLOAT, 1);
+			int         parseTemperature            = (int)combinedTemperatureAndHR/10;
+			float       displayTemperature          = parseTemperature/(float)(100.0);
+			int         intCombinedTemperatureAndHR = (int)(combinedTemperatureAndHR*100);
+			int         parseHeartRate              = intCombinedTemperatureAndHR % 1000;
+//			float       displayHeartRate            = parseHeartRate/(float)1.0;
 
+			mCallbacks.onSampleValueReceived(gatt.getDevice(), displayTemperature);
+//			mCallbacks.onSampleValueReceived(gatt.getDevice(), displayHeartRate);
 		}
 
 //		private int flagsDecode(byte[] data) {
