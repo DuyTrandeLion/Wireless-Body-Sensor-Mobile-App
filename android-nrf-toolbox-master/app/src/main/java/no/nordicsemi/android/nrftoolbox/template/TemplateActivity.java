@@ -42,6 +42,7 @@ import android.widget.TextView;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.LimitLine;
 import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.LineData;
 
 import java.util.UUID;
 
@@ -221,25 +222,9 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		// this may notify user or show some views
 	}
 
-//	private void setValueOnView(final float value) {
-//		// TODO assign the value to a view
-//		mValueView.setText(String.valueOf(value));
-//		final String type = "Finger";
-//		mRHTSType.setText(String.valueOf(type));
-//	}
+
 	private void setValueOnView(final float value, final String type) {
 		// TODO assign the value to a view
-//		final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-//		final int unit = Integer.parseInt(preferences.getString(SettingsFragment.SETTINGS_TEMP_UNIT, String.valueOf(SettingsFragment.SETTINGS_VARIANT_DEFAULT)));
-//		switch (unit) {
-//			case SettingsFragment.SETTINGS_VARIANT_C:
-//				mValueView.setText(String.valueOf(value));
-//				break;
-//			case SettingsFragment.SETTINGS_VARIANT_F:
-//				mValueView.setText(String.valueOf(value * 1.8 + 32));
-//				break;
-//			default: break;
-//		}
 		setUnits();
 		float displayValue = 0;
 		switch (UINT_ON_VIEW) {
@@ -254,6 +239,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		mValueView.setText(String.valueOf(displayValue));
 		mRHTSType.setText(String.valueOf(type));
 	}
+
 	private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(final Context context, final Intent intent) {
@@ -271,6 +257,10 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		final IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction(TemplateService.BROADCAST_RHTS_MEASUREMENT);
 		return intentFilter;
+	}
+
+	private void setData(float[] range) {
+
 	}
 
 }
