@@ -1,9 +1,12 @@
 package no.nordicsemi.android.nrftoolbox.mqtt;
 
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.os.CountDownTimer;
@@ -44,9 +47,9 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
     private static CountDownTimer     publishTimer;
 
     // Textview
-    TextView txtInputDeviceName;
-    TextView txtInputAuthMethod;
-    TextView txtInputAuthToken;
+    EditText txtInputDeviceName;
+    EditText txtInputAuthMethod;
+    EditText txtInputAuthToken;
     TextView txtInputPort;
 
     // Button
@@ -54,12 +57,25 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
     Button uploadDataButton;
 
     // Save state
+    String PreferenceKey = "SavedKey";
     String mqttDeviceNameState;
     String mqttAuthMethodState;
     String mqttAuthTokenState;
 
     // Test data
     long publishCounterValue = 0;
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        SaveUserInputData();
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,14 +89,48 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
 
         connectServerButton = findViewById(R.id.action_server_connect);
         uploadDataButton    = findViewById(R.id.action_upload);
+
+        if (savedInstanceState != null) {
+            txtInputDeviceName.setText("InputDeviceNameState");
+            txtInputAuthMethod.setText("InputAuthMethodState");
+            txtInputAuthToken.setText("InputAuthTokenState");
+
+            connectServerButton.setText("ConnectServerButtonState");
+            uploadDataButton.setText("UploadDataButtonState");
+        }
+
+        SharedPreferences prefs  = getSharedPreferences(PreferenceKey, MODE_PRIVATE);
+        txtInputDeviceName.setText(prefs.getString("SAVE_INPUT_DEVICE_NAME", null));
+        txtInputAuthMethod.setText(prefs.getString("SAVE_INPUT_AUTH_METHOD", null));
+        txtInputAuthToken.setText(prefs.getString("SAVE_INPUT_AUTH_TOKEN", null));
+        connectServerButton.setText(prefs.getString("SAVE_CONNECT_SERVER_BUTTON", "CONNECT"));
+        uploadDataButton.setText(prefs.getString("SAVE_UPLOAD_DATA_BUTTON", "UPLOAD"));
+
         connectServerButton.setOnClickListener(this);
         uploadDataButton.setOnClickListener(this);
 
     }
 
+    private void SaveUserInputData() {
+        if (txtInputDeviceName.getText().toString() != null &
+            txtInputAuthMethod.getText().toString() != null &
+            txtInputAuthToken.getText().toString() != null) {
+            SharedPreferences.Editor editor = getSharedPreferences(PreferenceKey, MODE_PRIVATE).edit();
+            editor.putString("SAVE_INPUT_DEVICE_NAME", txtInputDeviceName.getText().toString());
+            editor.putString("SAVE_INPUT_AUTH_METHOD", txtInputAuthMethod.getText().toString());
+            editor.putString("SAVE_INPUT_AUTH_TOKEN", txtInputAuthToken.getText().toString());
+
+            editor.putString("SAVE_CONNECT_SERVER_BUTTON", connectServerButton.getText().toString());
+            editor.putString("SAVE_UPLOAD_DATA_BUTTON", uploadDataButton.getText().toString());
+
+            editor.apply();
+        }
+    }
+
     @Override
     public void onClick(View v) {
         // TODO
+        SaveUserInputData();
         if (v.getId() == R.id.action_server_connect) {
             mqttDeviceName = txtInputDeviceName.getText().toString();
             mqttAuthMethod = txtInputAuthMethod.getText().toString();
@@ -101,29 +151,20 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    // This callback is called only when there is a saved instance that is previously saved by using
-    // onSaveInstanceState(). We restore some state in onCreate(), while we can optionally restore
-    // other state here, possibly usable after onStart() has completed.
-    // The savedInstanceState Bundle is same as the one used in onCreate().
-    @Override
-    public void onRestoreInstanceState(Bundle savedInstanceState) {
-        txtInputDeviceName.setText(mqttDeviceNameState);
-        txtInputAuthMethod.setText(mqttAuthMethodState);
-        txtInputAuthToken.setText(mqttAuthTokenState);
-
-        mqttDeviceName = mqttDeviceNameState;
-        mqttAuthMethod = mqttAuthMethodState;
-        mqttAuthToken  = mqttAuthTokenState;
-    }
-
     // invoked when the activity may be temporarily destroyed, save the instance state here
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putString(mqttDeviceNameState, mqttDeviceName);
-        outState.putString(mqttAuthMethodState, mqttAuthMethod);
-        outState.putString(mqttAuthTokenState, mqttAuthToken);
-
         super.onSaveInstanceState(outState);
+        if (txtInputDeviceName.getText().toString() != null &
+            txtInputAuthMethod.getText().toString() != null &
+            txtInputAuthToken.getText().toString() != null) {
+            outState.putString("InputDeviceNameState", txtInputDeviceName.getText().toString());
+            outState.putString("InputAuthMethodState", txtInputAuthMethod.getText().toString());
+            outState.putString("InputAuthTokenState", txtInputAuthToken.getText().toString());
+
+            outState.putString("ConnectServerButtonState", connectServerButton.getText().toString());
+            outState.putString("UploadDataButtonState", uploadDataButton.getText().toString());
+        }
     }
 
     private boolean checkValidInfo() {
@@ -242,7 +283,7 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
     }
-
+        
     void uploadClicked(final View view) {
         // Start uploading
         if (checkMQTTConnectStatus()) {

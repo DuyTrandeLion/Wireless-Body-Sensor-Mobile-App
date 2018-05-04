@@ -27,21 +27,28 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.Menu;
 import android.support.annotation.NonNull;
+import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
-import org.achartengine.GraphicalView;
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.LimitLine;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.LineData;
+
 import java.util.UUID;
+import java.util.Calendar;
 
 import no.nordicsemi.android.nrftoolbox.R;
-import no.nordicsemi.android.nrftoolbox.hrs.HRSManagerCallbacks;
-import no.nordicsemi.android.nrftoolbox.hrs.LineGraphView;
 import no.nordicsemi.android.nrftoolbox.profile.BleProfileService;
 import no.nordicsemi.android.nrftoolbox.profile.BleProfileServiceReadyActivity;
 import no.nordicsemi.android.nrftoolbox.template.settings.SettingsActivity;
@@ -68,8 +75,9 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	private TextView mValueView, mRHTSType;
 	private TextView mValueUnitView;
 
-	private GraphicalView mGraphView;
-	private LineGraphView mLineGraph;
+	private LineChart mChart;
+	private SeekBar mSeekBarX, mSeekBarY;
+	private TextView tvX, tvY;
 
 	private float mCounter = 0;
 
@@ -77,7 +85,10 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	protected void onCreateView(final Bundle savedInstanceState) {
 		// TODO modify the layout file(s). By default the activity shows only one field - the Heart Rate value as a sample
 		setContentView(R.layout.activity_feature_template);
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+				WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		setGUI();
+
 	}
 
 	private void setGUI() {
@@ -85,14 +96,41 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		mValueView = findViewById(R.id.value);
 		mRHTSType  = findViewById(R.id.type);
 		mValueUnitView = findViewById(R.id.value_unit);
-//		showGraph();
+
+		mChart = findViewById(R.id.chart1);
+		mChart.setDrawGridBackground(false);
+
+		// no description text
+		mChart.getDescription().setEnabled(false);
+
+		// enable touch gestures
+		mChart.setTouchEnabled(true);
+
+		// enable scaling and dragging
+		mChart.setDragEnabled(true);
+		mChart.setScaleEnabled(true);
+
+		// if disabled, scaling can be done on x- and y-axis separately
+		mChart.setPinchZoom(true);
+
+		LimitLine llXAxis = new LimitLine(10f, "Index 10");
+		llXAxis.setLineWidth(4f);
+		llXAxis.enableDashedLine(10f, 10f, 0f);
+		llXAxis.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_BOTTOM);
+		llXAxis.setTextSize(10f);
+
+		YAxis leftAxis = mChart.getAxisLeft();
+		leftAxis.removeAllLimitLines();
+
+		// limit lines are drawn behind data (and not on top)
+		leftAxis.setDrawLimitLinesBehindData(true);
+
+		mChart.getAxisRight().setEnabled(false);
+
+		LineData data = new LineData();
+		data.setValueTextColor(Color.BLACK);
 	}
 
-	private void showGraph() {
-		mGraphView = mLineGraph.getView(this);
-		ViewGroup layout = findViewById(R.id.graph_rhts);
-		layout.addView(mGraphView);
-	}
 
 	@Override
 	protected void onInitialize(final Bundle savedInstanceState) {
@@ -187,25 +225,9 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		// this may notify user or show some views
 	}
 
-//	private void setValueOnView(final float value) {
-//		// TODO assign the value to a view
-//		mValueView.setText(String.valueOf(value));
-//		final String type = "Finger";
-//		mRHTSType.setText(String.valueOf(type));
-//	}
+
 	private void setValueOnView(final float value, final String type) {
 		// TODO assign the value to a view
-//		final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-//		final int unit = Integer.parseInt(preferences.getString(SettingsFragment.SETTINGS_TEMP_UNIT, String.valueOf(SettingsFragment.SETTINGS_VARIANT_DEFAULT)));
-//		switch (unit) {
-//			case SettingsFragment.SETTINGS_VARIANT_C:
-//				mValueView.setText(String.valueOf(value));
-//				break;
-//			case SettingsFragment.SETTINGS_VARIANT_F:
-//				mValueView.setText(String.valueOf(value * 1.8 + 32));
-//				break;
-//			default: break;
-//		}
 		setUnits();
 		float displayValue = 0;
 		switch (UINT_ON_VIEW) {
@@ -220,6 +242,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		mValueView.setText(String.valueOf(displayValue));
 		mRHTSType.setText(String.valueOf(type));
 	}
+
 	private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(final Context context, final Intent intent) {
@@ -237,6 +260,10 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		final IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction(TemplateService.BROADCAST_RHTS_MEASUREMENT);
 		return intentFilter;
+	}
+
+	private void setData(float[] range) {
+
 	}
 
 }

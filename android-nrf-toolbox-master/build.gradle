@@ -21,6 +21,9 @@ allprojects {
         maven {
             url "https://repo.eclipse.org/content/repositories/paho-snapshots/"
         }
+        repositories {
+            maven { url "https://jitpack.io" }
+        }
         jcenter()
         google()
     }
