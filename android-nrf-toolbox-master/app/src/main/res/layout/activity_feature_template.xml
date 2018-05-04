@@ -81,7 +81,7 @@
 
 		<!-- Application section -->
 
-		<LinearLayout
+		<RelativeLayout
 			style="@style/Widget.List"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
@@ -90,7 +90,7 @@
 			android:layout_marginRight="@dimen/feature_horizontal_margin"
 			android:layout_marginTop="@dimen/feature_vertical_margin_top"
 			android:orientation="vertical"
-			android:id="@+id/linearLayout">
+			android:id="@+id/relativeLayout">
 
 			<no.nordicsemi.android.nrftoolbox.widget.TrebuchetBoldTextView
 				style="@style/Widget.ListTitle"
@@ -101,8 +101,8 @@
 			<TableLayout
 				android:layout_width="match_parent"
 				android:layout_height="82dp"
-				android:layout_alignBottom="@+id/linearLayout"
-				android:layout_alignStart="@+id/linearLayout"
+				android:layout_alignBottom="@+id/relativeLayout"
+				android:layout_alignStart="@+id/relativeLayout"
 				android:padding="@dimen/feature_section_padding">
 
 				<TableRow
@@ -144,7 +144,7 @@
 						/>
 				</TableRow>
 			</TableLayout>
-		</LinearLayout>
+		</RelativeLayout>
 		<com.github.mikephil.charting.charts.LineChart
 			android:id="@+id/chart1"
 			android:layout_width="match_parent"
