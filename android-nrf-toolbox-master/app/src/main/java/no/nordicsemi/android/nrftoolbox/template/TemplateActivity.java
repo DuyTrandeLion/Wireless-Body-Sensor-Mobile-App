@@ -33,16 +33,19 @@ import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.Menu;
 import android.support.annotation.NonNull;
+import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import org.achartengine.GraphicalView;
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.LimitLine;
+import com.github.mikephil.charting.components.YAxis;
+
 import java.util.UUID;
 
 import no.nordicsemi.android.nrftoolbox.R;
-import no.nordicsemi.android.nrftoolbox.hrs.HRSManagerCallbacks;
-import no.nordicsemi.android.nrftoolbox.hrs.LineGraphView;
 import no.nordicsemi.android.nrftoolbox.profile.BleProfileService;
 import no.nordicsemi.android.nrftoolbox.profile.BleProfileServiceReadyActivity;
 import no.nordicsemi.android.nrftoolbox.template.settings.SettingsActivity;
@@ -69,8 +72,9 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	private TextView mValueView, mRHTSType;
 	private TextView mValueUnitView;
 
-	private GraphicalView mGraphView;
-	private LineGraphView mLineGraph;
+	private LineChart mChart;
+	private SeekBar mSeekBarX, mSeekBarY;
+	private TextView tvX, tvY;
 
 	private float mCounter = 0;
 
@@ -78,7 +82,10 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	protected void onCreateView(final Bundle savedInstanceState) {
 		// TODO modify the layout file(s). By default the activity shows only one field - the Heart Rate value as a sample
 		setContentView(R.layout.activity_feature_template);
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+				WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		setGUI();
+
 	}
 
 	private void setGUI() {
@@ -86,14 +93,40 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		mValueView = findViewById(R.id.value);
 		mRHTSType  = findViewById(R.id.type);
 		mValueUnitView = findViewById(R.id.value_unit);
-//		showGraph();
+
+		mChart = findViewById(R.id.chart1);
+		mChart.setDrawGridBackground(false);
+
+		// no description text
+		mChart.getDescription().setEnabled(false);
+
+		// enable touch gestures
+		mChart.setTouchEnabled(true);
+
+		// enable scaling and dragging
+		mChart.setDragEnabled(true);
+		mChart.setScaleEnabled(true);
+
+		// if disabled, scaling can be done on x- and y-axis separately
+		mChart.setPinchZoom(true);
+
+		LimitLine llXAxis = new LimitLine(10f, "Index 10");
+		llXAxis.setLineWidth(4f);
+		llXAxis.enableDashedLine(10f, 10f, 0f);
+		llXAxis.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_BOTTOM);
+		llXAxis.setTextSize(10f);
+
+		YAxis leftAxis = mChart.getAxisLeft();
+		leftAxis.removeAllLimitLines();
+
+		// limit lines are drawn behind data (and not on top)
+		leftAxis.setDrawLimitLinesBehindData(true);
+
+		mChart.getAxisRight().setEnabled(false);
+
+
 	}
 
-	private void showGraph() {
-		mGraphView = mLineGraph.getView(this);
-		ViewGroup layout = findViewById(R.id.graph_rhts);
-		layout.addView(mGraphView);
-	}
 
 	@Override
 	protected void onInitialize(final Bundle savedInstanceState) {
