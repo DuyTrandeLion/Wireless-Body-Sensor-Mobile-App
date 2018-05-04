@@ -34,6 +34,7 @@ import android.widget.TextView;
 import org.achartengine.GraphicalView;
 
 import java.util.UUID;
+import java.util.Calendar;
 
 import no.nordicsemi.android.ble.BleManager;
 import no.nordicsemi.android.nrftoolbox.FeaturesActivity;

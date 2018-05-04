@@ -27,6 +27,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -45,6 +46,7 @@ import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.LineData;
 
 import java.util.UUID;
+import java.util.Calendar;
 
 import no.nordicsemi.android.nrftoolbox.R;
 import no.nordicsemi.android.nrftoolbox.profile.BleProfileService;
@@ -125,7 +127,8 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 
 		mChart.getAxisRight().setEnabled(false);
 
-
+		LineData data = new LineData();
+		data.setValueTextColor(Color.BLACK);
 	}
 
 
