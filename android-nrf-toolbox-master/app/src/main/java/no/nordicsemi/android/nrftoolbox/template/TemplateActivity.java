@@ -43,8 +43,12 @@ import android.widget.TextView;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.LimitLine;
 import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 
+import java.util.ArrayList;
 import java.util.UUID;
 import java.util.Calendar;
 
@@ -61,25 +65,14 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	@SuppressWarnings("unused")
 	private final String TAG = "ReplaceHTSActivity";
 
-	private final static String GRAPH_STATUS = "graph_status";
-	private final static String GRAPH_COUNTER = "graph_counter";
-	private final static String RHTS_VALUE = "rhts_value";
-
-	private final static float MAX_HTS_VALUE = (float)150.0;
-	private final static float MIN_POSITIVE_VALUE = (float)0.0;
-	private final static int REFRESH_INTERVAL = 500; // 1 second interval
-
-	private static int UINT_ON_VIEW;
+	private static int UINT_ON_VIEW = SettingsFragment.SETTINGS_VARIANT_DEFAULT;
 
 	// TODO change view references to match your need
 	private TextView mValueView, mRHTSType;
 	private TextView mValueUnitView;
 
 	private LineChart mChart;
-	private SeekBar mSeekBarX, mSeekBarY;
-	private TextView tvX, tvY;
-
-	private float mCounter = 0;
+	private int valueCount = 0;
 
 	@Override
 	protected void onCreateView(final Bundle savedInstanceState) {
@@ -113,24 +106,10 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		// if disabled, scaling can be done on x- and y-axis separately
 		mChart.setPinchZoom(true);
 
-		LimitLine llXAxis = new LimitLine(10f, "Index 10");
-		llXAxis.setLineWidth(4f);
-		llXAxis.enableDashedLine(10f, 10f, 0f);
-		llXAxis.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_BOTTOM);
-		llXAxis.setTextSize(10f);
-
-		YAxis leftAxis = mChart.getAxisLeft();
-		leftAxis.removeAllLimitLines();
-
-		// limit lines are drawn behind data (and not on top)
-		leftAxis.setDrawLimitLinesBehindData(true);
-
 		mChart.getAxisRight().setEnabled(false);
 
-		LineData data = new LineData();
-		data.setValueTextColor(Color.BLACK);
+		drawDefaultGraph();
 	}
-
 
 	@Override
 	protected void onInitialize(final Bundle savedInstanceState) {
@@ -141,6 +120,46 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	protected void onDestroy() {
 		super.onDestroy();
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
+	}
+
+	private void drawDefaultGraph() {
+		LimitLine upperLimit = new LimitLine(0, "");
+		if (UINT_ON_VIEW == SettingsFragment.SETTINGS_VARIANT_C) {
+			upperLimit = new LimitLine(43f, "Cao nhất");
+		}
+		else if (UINT_ON_VIEW == SettingsFragment.SETTINGS_VARIANT_F) {
+			upperLimit = new LimitLine(111f, "Cao nhất");
+		}
+		upperLimit.setLineWidth(4f);
+		upperLimit.enableDashedLine(10f, 10f, 0f);
+		upperLimit.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_TOP);
+		upperLimit.setLineColor(Color.RED);
+		upperLimit.setTextSize(12f);
+
+		LimitLine lowerLimit = new LimitLine(0, "");
+		if (UINT_ON_VIEW == SettingsFragment.SETTINGS_VARIANT_C) {
+			lowerLimit = new LimitLine(25f, "Thấp nhất");
+		}
+		else if (UINT_ON_VIEW == SettingsFragment.SETTINGS_VARIANT_F) {
+			lowerLimit = new LimitLine(77f, "Thấp nhất");
+		}
+		lowerLimit.setLineWidth(4f);
+		lowerLimit.enableDashedLine(10f, 10f, 0f);
+		lowerLimit.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_BOTTOM);
+		lowerLimit.setLineColor(Color.BLUE);
+		lowerLimit.setTextSize(12f);
+
+		YAxis leftAxis = mChart.getAxisLeft();
+		leftAxis.removeAllLimitLines();
+		leftAxis.addLimitLine(upperLimit);
+		leftAxis.addLimitLine(lowerLimit);
+
+		// limit lines are drawn behind data (and not on top)
+		leftAxis.setDrawLimitLinesBehindData(true);
+
+		float[] testArray = {7f, 8f, 9f, 10f, 11f, 15f, 16f,7, 17f, 20f, 25f, 26f, 27f, 29f, 30f, 34f, 35f, 37f, 38f};
+		setData(testArray);
+		mChart.invalidate();
 	}
 
 	@Override
@@ -239,8 +258,18 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 				break;
 			default: break;
 		}
+
 		mValueView.setText(String.valueOf(displayValue));
 		mRHTSType.setText(String.valueOf(type));
+
+//		int index = valueCount;
+//		valueCount++;
+//		float[] temperatureDataArray = new float[valueCount];
+//		for (int i = 0; i < temperatureDataArray.length; i++) {
+//			temperatureDataArray[i] = (float)i;
+//		}
+//		setData(temperatureDataArray);
+//		mChart.invalidate();
 	}
 
 	private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
@@ -263,7 +292,38 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	}
 
 	private void setData(float[] range) {
+		ArrayList<Entry> values = new ArrayList<Entry>();
 
+		for (int i = 0; i < range.length; i++) {
+			values.add(new Entry(i, range[i]));
+		}
+
+		LineDataSet temperatureDataSet;
+
+		if (mChart.getData() != null &&
+			mChart.getData().getDataSetCount() > 0) {
+
+			temperatureDataSet = (LineDataSet) mChart.getData().getDataSetByIndex(0);
+			temperatureDataSet.setValues(values);
+			mChart.getData().notifyDataChanged();
+			mChart.notifyDataSetChanged();
+		}
+		else {
+			// create a dataset and give it a type
+			temperatureDataSet = new LineDataSet(values, "Dataset 1");
+			temperatureDataSet.setLineWidth(2f);
+			temperatureDataSet.setColor(Color.RED);
+
+			ArrayList<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
+			dataSets.add(temperatureDataSet);
+
+			LineData data = new LineData(dataSets);
+			data.setValueTextSize(8f);
+			data.setValueTextColor(Color.BLUE);
+
+			// set data
+			mChart.setData(data);
+		}
 	}
 
 }
