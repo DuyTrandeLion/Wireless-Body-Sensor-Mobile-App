@@ -76,6 +76,20 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
         SaveUserInputData();
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (txtInputDeviceName.getText().toString() != null &
+                txtInputAuthMethod.getText().toString() != null &
+                txtInputAuthToken.getText().toString() != null) {
+            SharedPreferences.Editor editor = getSharedPreferences(PreferenceKey, MODE_PRIVATE).edit();
+            editor.putString("SAVE_INPUT_DEVICE_NAME", txtInputDeviceName.getText().toString());
+            editor.putString("SAVE_INPUT_AUTH_METHOD", txtInputAuthMethod.getText().toString());
+            editor.putString("SAVE_INPUT_AUTH_TOKEN", txtInputAuthToken.getText().toString());
+            
+            editor.apply();
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
