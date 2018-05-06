@@ -86,35 +86,22 @@
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:layout_marginBottom="@dimen/activity_vertical_margin_bottom"
-			android:layout_marginLeft="@dimen/feature_horizontal_margin"
-			android:layout_marginRight="@dimen/feature_horizontal_margin"
-			android:layout_marginTop="@dimen/feature_vertical_margin_top"
 			android:orientation="vertical"
-			android:id="@+id/relativeLayout">
-
-			<no.nordicsemi.android.nrftoolbox.widget.TrebuchetBoldTextView
-				style="@style/Widget.ListTitle"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content"
-				android:text="@string/template_section_header" />
+			android:id="@+id/relativeLayout" >
 
 			<TableLayout
 				android:layout_width="match_parent"
 				android:layout_height="82dp"
 				android:layout_alignBottom="@+id/relativeLayout"
 				android:layout_alignStart="@+id/relativeLayout"
-				android:padding="@dimen/feature_section_padding">
+				android:layout_marginTop="@dimen/feature_table_layout_margin_top"
+				android:padding="@dimen/feature_section_padding"
+				android:id="@+id/tableLayout" >
 
 				<TableRow
 					android:layout_width="match_parent"
 					android:layout_height="70dp">
 
-					<!--<no.nordicsemi.android.nrftoolbox.widget.TrebuchetTextView-->
-					<!--android:layout_width="0dp"-->
-					<!--android:layout_height="match_parent"-->
-					<!--android:layout_weight="1"-->
-					<!--android:gravity="center_vertical"-->
-					<!--android:text="@string/template_value_title" />-->
 					<no.nordicsemi.android.nrftoolbox.widget.TrebuchetTextView
 						android:id="@+id/type"
 						android:layout_width="wrap_content"
