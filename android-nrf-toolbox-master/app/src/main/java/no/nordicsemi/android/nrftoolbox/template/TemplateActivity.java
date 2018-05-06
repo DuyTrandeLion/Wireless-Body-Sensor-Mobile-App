@@ -72,7 +72,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	private TextView mValueUnitView;
 
 	private LineChart mChart;
-	private int valueCount = 0;
+	float[] dataArray;
 
 	@Override
 	protected void onCreateView(final Bundle savedInstanceState) {
@@ -157,9 +157,6 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		// limit lines are drawn behind data (and not on top)
 		leftAxis.setDrawLimitLinesBehindData(true);
 
-		float[] testArray = {7f, 8f, 9f, 10f, 11f, 15f, 16f,7, 17f, 20f, 25f, 26f, 27f, 29f, 30f, 34f, 35f, 37f, 38f};
-		setData(testArray);
-		mChart.invalidate();
 	}
 
 	@Override
@@ -262,14 +259,20 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		mValueView.setText(String.valueOf(displayValue));
 		mRHTSType.setText(String.valueOf(type));
 
-//		int index = valueCount;
-//		valueCount++;
-//		float[] temperatureDataArray = new float[valueCount];
-//		for (int i = 0; i < temperatureDataArray.length; i++) {
-//			temperatureDataArray[i] = (float)i;
-//		}
-//		setData(temperatureDataArray);
-//		mChart.invalidate();
+		if (dataArray == null) {
+			dataArray = new float[1];
+			dataArray[0] = displayValue;
+		}
+		else {
+			float[] newDataArray = new float[dataArray.length + 1];
+			for (int i = 0; i < dataArray.length; i++) {
+				newDataArray[i] = dataArray[i];
+			}
+			newDataArray[dataArray.length] = displayValue;
+			dataArray = newDataArray;
+		}
+		setData(dataArray);
+		mChart.invalidate();
 	}
 
 	private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
