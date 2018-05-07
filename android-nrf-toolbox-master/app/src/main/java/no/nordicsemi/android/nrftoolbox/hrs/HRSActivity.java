@@ -67,7 +67,7 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 
 	private final static int MAX_HR_VALUE = 65535;
 	private final static int MIN_POSITIVE_VALUE = 0;
-	private final static int REFRESH_INTERVAL = 5000; // 1 second interval
+	private final static int REFRESH_INTERVAL = 2000; // 1 second interval
 
 	private Handler mHandler = new Handler();
 
@@ -77,8 +77,6 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 
 	private int mHrmValue = 0;
 	private int mCounter = 0;
-
-	private boolean isFirstTimeReadData = true;
 
 	private LineChart mChart;
 	int[] dataArray;
@@ -118,9 +116,6 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 	}
 
 	private void showGraph() {
-//		mGraphView = mLineGraph.getView(this);
-//		ViewGroup layout = findViewById(R.id.graph_hrs);
-//		layout.addView(mGraphView);
 		LimitLine upperLimit = new LimitLine(200, "Nhịp tim tối đa");
 		upperLimit.setLineWidth(4f);
 		upperLimit.enableDashedLine(10f, 10f, 0f);
