@@ -24,15 +24,26 @@ package no.nordicsemi.android.nrftoolbox.hrs;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.TextView;
+
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.LimitLine;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 
 import org.achartengine.GraphicalView;
 
+import java.util.ArrayList;
 import java.util.UUID;
 import java.util.Calendar;
 
@@ -56,36 +67,76 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 
 	private final static int MAX_HR_VALUE = 65535;
 	private final static int MIN_POSITIVE_VALUE = 0;
-	private final static int REFRESH_INTERVAL = 1000; // 1 second interval
+	private final static int REFRESH_INTERVAL = 2000; // 1 second interval
 
 	private Handler mHandler = new Handler();
 
 	private boolean isGraphInProgress = false;
 
-	private GraphicalView mGraphView;
-	private LineGraphView mLineGraph;
 	private TextView mHRSValue, mHRSPosition;
 
 	private int mHrmValue = 0;
 	private int mCounter = 0;
 
+	private LineChart mChart;
+	int[] dataArray;
+
 	@Override
 	protected void onCreateView(final Bundle savedInstanceState) {
 		setContentView(R.layout.activity_feature_hrs);
+
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+				WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		setGUI();
 	}
 
 	private void setGUI() {
-		mLineGraph = LineGraphView.getLineGraphView();
 		mHRSValue = findViewById(R.id.text_hrs_value);
 		mHRSPosition = findViewById(R.id.text_hrs_position);
+
+		mChart = findViewById(R.id.chart1);
+		mChart.setDrawGridBackground(false);
+
+		// no description text
+		mChart.getDescription().setEnabled(false);
+
+		// enable touch gestures
+		mChart.setTouchEnabled(true);
+
+		// enable scaling and dragging
+		mChart.setDragEnabled(true);
+		mChart.setScaleEnabled(true);
+
+		// if disabled, scaling can be done on x- and y-axis separately
+		mChart.setPinchZoom(true);
+
+		mChart.getAxisRight().setEnabled(false);
+
 		showGraph();
 	}
 
 	private void showGraph() {
-		mGraphView = mLineGraph.getView(this);
-		ViewGroup layout = findViewById(R.id.graph_hrs);
-		layout.addView(mGraphView);
+		LimitLine upperLimit = new LimitLine(200, "Nhịp tim tối đa");
+		upperLimit.setLineWidth(4f);
+		upperLimit.enableDashedLine(10f, 10f, 0f);
+		upperLimit.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_TOP);
+		upperLimit.setLineColor(Color.RED);
+		upperLimit.setTextSize(12f);
+
+		LimitLine lowerLimit = new LimitLine(65, "Nhịp tim tối thiểu");
+		lowerLimit.setLineWidth(4f);
+		lowerLimit.enableDashedLine(10f, 10f, 0f);
+		lowerLimit.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_BOTTOM);
+		lowerLimit.setLineColor(Color.BLUE);
+		lowerLimit.setTextSize(12f);
+
+		YAxis leftAxis = mChart.getAxisLeft();
+		leftAxis.removeAllLimitLines();
+		leftAxis.addLimitLine(upperLimit);
+		leftAxis.addLimitLine(lowerLimit);
+
+		// limit lines are drawn behind data (and not on top)
+		leftAxis.setDrawLimitLinesBehindData(true);
 	}
 
 	@Override
@@ -151,17 +202,61 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 		return HRSManager.HR_SERVICE_UUID;
 	}
 
-	private void updateGraph(final int hrmValue) {
-		mCounter++;
-		mLineGraph.addValue(new Point(mCounter, hrmValue));
-		mGraphView.repaint();
+	private void updateGraph(int[] range) {
+		ArrayList<Entry> values = new ArrayList<Entry>();
+
+		for (int i = 0; i < range.length; i++) {
+			values.add(new Entry(i, range[i]));
+		}
+
+		LineDataSet HRDataSet;
+
+		if (mChart.getData() != null &&
+			mChart.getData().getDataSetCount() > 0) {
+
+			HRDataSet = (LineDataSet) mChart.getData().getDataSetByIndex(0);
+			HRDataSet.setValues(values);
+			mChart.getData().notifyDataChanged();
+			mChart.notifyDataSetChanged();
+		}
+		else {
+			// create a dataset and give it a type
+			HRDataSet = new LineDataSet(values, "Nhịp tim hiện tại");
+			HRDataSet.setLineWidth(2f);
+			HRDataSet.setColor(Color.RED);
+
+			ArrayList<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
+			dataSets.add(HRDataSet);
+
+			LineData data = new LineData(dataSets);
+			data.setValueTextSize(8f);
+			data.setValueTextColor(Color.BLUE);
+
+			// set data
+			mChart.setData(data);
+		}
+
 	}
 
 	private Runnable mRepeatTask = new Runnable() {
 		@Override
 		public void run() {
-			if (mHrmValue > 0)
-				updateGraph(mHrmValue);
+			if (mHrmValue > 0) {
+				if (dataArray == null) {
+					dataArray = new int[1];
+					dataArray[0] = mHrmValue;
+				}
+				else {
+					int[] newDataArray = new int[dataArray.length + 1];
+					for (int i = 0; i < dataArray.length; i++) {
+						newDataArray[i] = dataArray[i];
+					}
+					newDataArray[dataArray.length] = mHrmValue;
+					dataArray = newDataArray;
+					updateGraph(dataArray);
+					mChart.invalidate();
+				}
+			}
 			if (isGraphInProgress)
 				mHandler.postDelayed(mRepeatTask, REFRESH_INTERVAL);
 		}
@@ -243,9 +338,5 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 	}
 
 	private void clearGraph() {
-		mLineGraph.clearGraph();
-		mGraphView.repaint();
-		mCounter = 0;
-		mHrmValue = 0;
 	}
 }

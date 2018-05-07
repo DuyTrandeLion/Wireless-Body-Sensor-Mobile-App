@@ -30,6 +30,8 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.PersistableBundle;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.Menu;
@@ -67,6 +69,18 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 
 	private static int UINT_ON_VIEW = SettingsFragment.SETTINGS_VARIANT_DEFAULT;
 
+	private final static String GRAPH_STATUS = "graph_status";
+	private final static String GRAPH_COUNTER = "graph_counter";
+	private final static String HTS_VALUE = "hr_value";
+
+	private final static int REFRESH_INTERVAL = 2000; // 1 second interval
+
+	private Handler mHandler = new Handler();
+
+	private boolean isGraphInProgress = false;
+
+	float mHTSValue;
+
 	// TODO change view references to match your need
 	private TextView mValueView, mRHTSType;
 	private TextView mValueUnitView;
@@ -81,7 +95,17 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		setGUI();
+		startShowGraph();
+	}
 
+	void startShowGraph() {
+		isGraphInProgress = true;
+		mRepeatTask.run();
+	}
+
+	void stopShowGraph() {
+		isGraphInProgress = false;
+		mHandler.removeCallbacks(mRepeatTask);
 	}
 
 	private void setGUI() {
@@ -119,8 +143,29 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
+		stopShowGraph();
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
 	}
+
+//	@Override
+//	public void onRestoreInstanceState(Bundle savedInstanceState, PersistableBundle persistentState) {
+//		super.onRestoreInstanceState(savedInstanceState, persistentState);
+//
+//		isGraphInProgress = savedInstanceState.getBoolean(GRAPH_STATUS);
+//		int mCounter = savedInstanceState.getInt(GRAPH_COUNTER);
+//		mHTSValue = savedInstanceState.getFloat(HTS_VALUE);
+//
+//		if (isGraphInProgress)
+//			startShowGraph();
+//	}
+//
+//	@Override
+//	protected void onSaveInstanceState(Bundle outState) {
+//		super.onSaveInstanceState(outState);
+//		outState.putBoolean(GRAPH_STATUS, isGraphInProgress);
+//		outState.putInt(GRAPH_COUNTER, dataArray.length);
+//		outState.putFloat(HTS_VALUE, mHTSValue);
+//	}
 
 	private void drawDefaultGraph() {
 		LimitLine upperLimit = new LimitLine(0, "");
@@ -241,6 +286,10 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		// this may notify user or show some views
 	}
 
+	@Override
+	public void onDeviceReady(final BluetoothDevice device) {
+		startShowGraph();
+	}
 
 	private void setValueOnView(final float value, final String type) {
 		// TODO assign the value to a view
@@ -259,20 +308,6 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		mValueView.setText(String.valueOf(displayValue));
 		mRHTSType.setText(String.valueOf(type));
 
-		if (dataArray == null) {
-			dataArray = new float[1];
-			dataArray[0] = displayValue;
-		}
-		else {
-			float[] newDataArray = new float[dataArray.length + 1];
-			for (int i = 0; i < dataArray.length; i++) {
-				newDataArray[i] = dataArray[i];
-			}
-			newDataArray[dataArray.length] = displayValue;
-			dataArray = newDataArray;
-		}
-		setData(dataArray);
-		mChart.invalidate();
 	}
 
 	private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
@@ -282,6 +317,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 
 			if (TemplateService.BROADCAST_RHTS_MEASUREMENT.equals(action)) {
 				final float value = intent.getFloatExtra(TemplateService.EXTRA_DATA, 0);
+				mHTSValue = value;
 				// Update GUI
 				setValueOnView(value, TemplateService.displayTemperatureType);
 			}
@@ -293,6 +329,30 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		intentFilter.addAction(TemplateService.BROADCAST_RHTS_MEASUREMENT);
 		return intentFilter;
 	}
+
+	private Runnable mRepeatTask = new Runnable() {
+		@Override
+		public void run() {
+			if (mHTSValue > 0) {
+				if (dataArray == null) {
+					dataArray = new float[1];
+					dataArray[0] = mHTSValue;
+				}
+				else {
+					float[] newDataArray = new float[dataArray.length + 1];
+					for (int i = 0; i < dataArray.length; i++) {
+						newDataArray[i] = dataArray[i];
+					}
+					newDataArray[dataArray.length] = mHTSValue;
+					dataArray = newDataArray;
+				}
+				setData(dataArray);
+				mChart.invalidate();
+			}
+			if (isGraphInProgress)
+				mHandler.postDelayed(mRepeatTask, REFRESH_INTERVAL);
+		}
+	};
 
 	private void setData(float[] range) {
 		ArrayList<Entry> values = new ArrayList<Entry>();
@@ -313,7 +373,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		}
 		else {
 			// create a dataset and give it a type
-			temperatureDataSet = new LineDataSet(values, "Dataset 1");
+			temperatureDataSet = new LineDataSet(values, "Nhiệt độ hiện tại");
 			temperatureDataSet.setLineWidth(2f);
 			temperatureDataSet.setColor(Color.RED);
 
