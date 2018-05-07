@@ -313,7 +313,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		}
 		else {
 			// create a dataset and give it a type
-			temperatureDataSet = new LineDataSet(values, "Dataset 1");
+			temperatureDataSet = new LineDataSet(values, "Nhiệt độ hiện tại");
 			temperatureDataSet.setLineWidth(2f);
 			temperatureDataSet.setColor(Color.RED);
 
