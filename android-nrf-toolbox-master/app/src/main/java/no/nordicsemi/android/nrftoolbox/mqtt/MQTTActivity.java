@@ -1,6 +1,8 @@
 package no.nordicsemi.android.nrftoolbox.mqtt;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -24,6 +26,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 
 import no.nordicsemi.android.nrftoolbox.R;
+import no.nordicsemi.android.nrftoolbox.template.TemplateActivity;
 
 public class MQTTActivity extends AppCompatActivity implements View.OnClickListener {
     private String mqttDeviceType   = "HTC_FONE";
@@ -51,6 +54,7 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
     EditText txtInputAuthMethod;
     EditText txtInputAuthToken;
     TextView txtInputPort;
+    TextView displayTemperature;
 
     // Button
     Button connectServerButton;
@@ -61,6 +65,13 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
 
     // Test data
     long publishCounterValue = 0;
+
+    // Upload data
+    Intent mIntent;
+    int UploadedHeartRate;
+    float UploadedTemperature;
+
+    public SharedPreferences sharedMeasuredValues;
 
     @Override
     public void onBackPressed() {
@@ -88,6 +99,7 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
         txtInputAuthMethod  = findViewById(R.id.input_auth_method);
         txtInputAuthToken   = findViewById(R.id.input_auth_token);
 //        txtInputPort        = findViewById(R.id.input_mqtt_port);
+        displayTemperature  = findViewById(R.id.temperature_display);
 
         connectServerButton = findViewById(R.id.action_server_connect);
         uploadDataButton    = findViewById(R.id.action_upload);
@@ -121,7 +133,6 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
 
         connectServerButton.setOnClickListener(this);
         uploadDataButton.setOnClickListener(this);
-
     }
 
     private void SaveUserInputData() {
@@ -307,11 +318,16 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void onTick(long millisUntilFinished) {
                         publishCounterValue++;
+                        mIntent = getIntent();
+                        sharedMeasuredValues = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+                        float getTemperatureValue = sharedMeasuredValues.getFloat("SHARED_TEMPERATURE_VALUE", 0);
+                        displayTemperature.setText(String.valueOf(getTemperatureValue));
                     }
 
                     @Override
                     public void onFinish() {
-                        String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(publishCounterValue) + "}}";
+                        String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(publishCounterValue) + ","
+                                + "\"Body temperature\":" + String.valueOf(UploadedTemperature) + "}}";
                         mqttPublish(timePayload);
                         // Test
                         if ((publishCounterValue % 100) == 0) {

@@ -55,6 +55,7 @@ import java.util.UUID;
 import java.util.Calendar;
 
 import no.nordicsemi.android.nrftoolbox.R;
+import no.nordicsemi.android.nrftoolbox.mqtt.MQTTActivity;
 import no.nordicsemi.android.nrftoolbox.profile.BleProfileService;
 import no.nordicsemi.android.nrftoolbox.profile.BleProfileServiceReadyActivity;
 import no.nordicsemi.android.nrftoolbox.template.settings.SettingsActivity;
@@ -73,7 +74,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	private final static String GRAPH_COUNTER = "graph_counter";
 	private final static String HTS_VALUE = "hr_value";
 
-	private final static int REFRESH_INTERVAL = 2000; // 1 second interval
+	private final static int REFRESH_INTERVAL = 1000; // 1 second interval
 
 	private Handler mHandler = new Handler();
 
@@ -87,6 +88,8 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 
 	private LineChart mChart;
 	float[] dataArray;
+
+	public SharedPreferences sharedMeasuredValues;
 
 	@Override
 	protected void onCreateView(final Bundle savedInstanceState) {
@@ -147,25 +150,25 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
 	}
 
-//	@Override
-//	public void onRestoreInstanceState(Bundle savedInstanceState, PersistableBundle persistentState) {
-//		super.onRestoreInstanceState(savedInstanceState, persistentState);
-//
-//		isGraphInProgress = savedInstanceState.getBoolean(GRAPH_STATUS);
-//		int mCounter = savedInstanceState.getInt(GRAPH_COUNTER);
-//		mHTSValue = savedInstanceState.getFloat(HTS_VALUE);
-//
-//		if (isGraphInProgress)
-//			startShowGraph();
-//	}
-//
-//	@Override
-//	protected void onSaveInstanceState(Bundle outState) {
-//		super.onSaveInstanceState(outState);
-//		outState.putBoolean(GRAPH_STATUS, isGraphInProgress);
-//		outState.putInt(GRAPH_COUNTER, dataArray.length);
-//		outState.putFloat(HTS_VALUE, mHTSValue);
-//	}
+	@Override
+	public void onRestoreInstanceState(Bundle savedInstanceState, PersistableBundle persistentState) {
+		super.onRestoreInstanceState(savedInstanceState, persistentState);
+
+		isGraphInProgress = savedInstanceState.getBoolean(GRAPH_STATUS);
+		int mCounter = savedInstanceState.getInt(GRAPH_COUNTER);
+		mHTSValue = savedInstanceState.getFloat(HTS_VALUE);
+
+		if (isGraphInProgress)
+			startShowGraph();
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		outState.putBoolean(GRAPH_STATUS, isGraphInProgress);
+		outState.putInt(GRAPH_COUNTER, dataArray.length);
+		outState.putFloat(HTS_VALUE, mHTSValue);
+	}
 
 	private void drawDefaultGraph() {
 		LimitLine upperLimit = new LimitLine(0, "");
@@ -308,6 +311,31 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		mValueView.setText(String.valueOf(displayValue));
 		mRHTSType.setText(String.valueOf(type));
 
+		if (mHTSValue > 0) {
+			if (dataArray == null) {
+				dataArray = new float[1];
+				dataArray[0] = mHTSValue;
+			}
+			else {
+				float[] newDataArray = new float[dataArray.length + 1];
+				for (int i = 0; i < dataArray.length; i++) {
+					newDataArray[i] = dataArray[i];
+				}
+				newDataArray[dataArray.length] = mHTSValue;
+				dataArray = newDataArray;
+			}
+			setData(dataArray);
+			mChart.invalidate();
+			sharedMeasuredValues = PreferenceManager.getDefaultSharedPreferences(TemplateActivity.this);
+			SharedPreferences.Editor sharedMeasuredValuesEditor = sharedMeasuredValues.edit();
+			sharedMeasuredValuesEditor.putFloat("SHARED_TEMPERATURE_VALUE", mHTSValue);
+			sharedMeasuredValuesEditor.apply();
+
+			SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(TemplateActivity.this);
+			SharedPreferences.Editor editor = preferences.edit();
+			
+			//startActivity(myIntent);
+		}
 	}
 
 	private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
@@ -333,22 +361,27 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	private Runnable mRepeatTask = new Runnable() {
 		@Override
 		public void run() {
-			if (mHTSValue > 0) {
-				if (dataArray == null) {
-					dataArray = new float[1];
-					dataArray[0] = mHTSValue;
-				}
-				else {
-					float[] newDataArray = new float[dataArray.length + 1];
-					for (int i = 0; i < dataArray.length; i++) {
-						newDataArray[i] = dataArray[i];
-					}
-					newDataArray[dataArray.length] = mHTSValue;
-					dataArray = newDataArray;
-				}
-				setData(dataArray);
-				mChart.invalidate();
-			}
+//			if (mHTSValue > 0) {
+//				if (dataArray == null) {
+//					dataArray = new float[1];
+//					dataArray[0] = mHTSValue;
+//				}
+//				else {
+//					float[] newDataArray = new float[dataArray.length + 1];
+//					for (int i = 0; i < dataArray.length; i++) {
+//						newDataArray[i] = dataArray[i];
+//					}
+//					newDataArray[dataArray.length] = mHTSValue;
+//					dataArray = newDataArray;
+//				}
+//				setData(dataArray);
+//				mChart.invalidate();
+//				sharedMeasuredValues = PreferenceManager.getDefaultSharedPreferences(TemplateActivity.this);
+//				SharedPreferences.Editor sharedMeasuredValuesEditor = sharedMeasuredValues.edit();
+//				sharedMeasuredValuesEditor.putFloat("SHARED_TEMPERATURE_VALUE", mHTSValue);
+//				sharedMeasuredValuesEditor.apply();
+//				//startActivity(myIntent);
+//			}
 			if (isGraphInProgress)
 				mHandler.postDelayed(mRepeatTask, REFRESH_INTERVAL);
 		}

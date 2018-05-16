@@ -131,6 +131,16 @@
             android:text="@string/mqtt_display_send_temperature"
             android:textSize="20sp"
             android:textStyle="bold" />
+        <no.nordicsemi.android.nrftoolbox.widget.TrebuchetTextView
+            android:id="@+id/temperature_display"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="160dp"
+            android:layout_marginTop="200dp"
+            android:text="@string/mqtt_display_send_temperature"
+            android:textSize="20sp" />
 
         <no.nordicsemi.android.nrftoolbox.widget.TrebuchetTextView
             android:id="@+id/text_send_temperature_type_label"
