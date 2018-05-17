@@ -104,7 +104,7 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
 
         connectServerButton = findViewById(R.id.action_server_connect);
         uploadDataButton    = findViewById(R.id.action_upload);
-        saveUserDataButton  = findViewById(R.id.action_save_user_config_data);
+        //saveUserDataButton  = findViewById(R.id.action_save_user_config_data);
 
         if (savedInstanceState != null) {
             txtInputDeviceName.setText("InputDeviceNameState");
@@ -170,9 +170,6 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
         }
         else if (v.getId() == R.id.action_upload) {
             uploadClicked(v);
-        }
-        else if (v.getId() == R.id.action_save_user_config_data) {
-            saveUserDataClicked(v);
         }
     }
 

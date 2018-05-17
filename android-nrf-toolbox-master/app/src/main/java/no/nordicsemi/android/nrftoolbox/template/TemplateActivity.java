@@ -331,13 +331,6 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 			}
 			setData(dataArray);
 			mChart.invalidate();
-//			sharedMeasuredValues = PreferenceManager.getDefaultSharedPreferences(TemplateActivity.this);
-//			SharedPreferences.Editor sharedMeasuredValuesEditor = sharedMeasuredValues.edit();
-//			sharedMeasuredValuesEditor.putFloat("SHARED_TEMPERATURE_VALUE", mHTSValue);
-//			sharedMeasuredValuesEditor.apply();
-//
-//			SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(TemplateActivity.this);
-//			SharedPreferences.Editor editor = preferences.edit();
 
 			//startActivity(myIntent);
             myTemplateIntent.putExtra("SHARE_TEMPERATURE", mHTSValue);

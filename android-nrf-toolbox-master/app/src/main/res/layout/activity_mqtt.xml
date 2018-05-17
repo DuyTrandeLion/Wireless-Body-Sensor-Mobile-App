@@ -142,7 +142,7 @@
             android:layout_marginTop="200dp"
             android:text="@string/mqtt_display_send_temperature"
             android:textSize="20sp"
-            android:visibility="gone"/>
+            />
 
         <no.nordicsemi.android.nrftoolbox.widget.TrebuchetTextView
             android:id="@+id/text_send_temperature_type_label"
@@ -187,12 +187,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:layout_marginBottom="@dimen/activity_vertical_margin_bottom"
-            android:layout_marginLeft="@dimen/activity_horizontal_margin"
+            android:layout_alignStart="@+id/text_auth_token_label"
+            android:layout_marginBottom="32dp"
             android:onClick="onServerConnectClicked"
-            android:text="@string/action_connect"
-            android:visibility="gone"/>
+            android:text="@string/action_connect" />
 
         <Button
             android:id="@+id/action_upload"
@@ -204,8 +202,7 @@
             android:layout_alignParentEnd="true"
             android:layout_marginEnd="16dp"
             android:onClick="onUploadClicked"
-            android:text="@string/action_upload"
-            android:visibility="gone"/>
+            android:text="@string/action_upload" />
 
         <Button
             android:id="@+id/action_save_user_config_data"
@@ -218,7 +215,8 @@
             android:layout_marginBottom="@dimen/activity_vertical_margin_bottom"
             android:layout_marginLeft="@dimen/activity_horizontal_margin"
             android:onClick="onServerConnectClicked"
-            android:text="@string/action_save_data" />
+            android:text="@string/action_save_data"
+            android:visibility="gone"/>
 
     </no.nordicsemi.android.nrftoolbox.widget.ForegroundRelativeLayout>
 </LinearLayout>
