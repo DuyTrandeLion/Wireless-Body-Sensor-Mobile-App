@@ -43,7 +43,7 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
     String mqttAuthToken;
     int    mqttPort;
 
-    boolean isUploading = false;
+    public boolean isUploading = false;
 
     private static MqttAndroidClient  mqttClient  = null;
     private static MqttConnectOptions mqttOptions = null;
@@ -59,6 +59,7 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
     // Button
     Button connectServerButton;
     Button uploadDataButton;
+    Button saveUserDataButton;
 
     // Save state
     String PreferenceKey = "SavedKey";
@@ -67,9 +68,9 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
     long publishCounterValue = 0;
 
     // Upload data
-    Intent mIntent;
-    int UploadedHeartRate;
-    float UploadedTemperature;
+//    Intent mIntent;
+//    int UploadedHeartRate;
+//    float UploadedTemperature;
 
     public SharedPreferences sharedMeasuredValues;
 
@@ -103,6 +104,7 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
 
         connectServerButton = findViewById(R.id.action_server_connect);
         uploadDataButton    = findViewById(R.id.action_upload);
+        saveUserDataButton  = findViewById(R.id.action_save_user_config_data);
 
         if (savedInstanceState != null) {
             txtInputDeviceName.setText("InputDeviceNameState");
@@ -168,6 +170,9 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
         }
         else if (v.getId() == R.id.action_upload) {
             uploadClicked(v);
+        }
+        else if (v.getId() == R.id.action_save_user_config_data) {
+            saveUserDataClicked(v);
         }
     }
 
@@ -279,7 +284,7 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    boolean checkMQTTConnectStatus() {
+    public boolean checkMQTTConnectStatus() {
         if (mqttClient == null) {
             return false;
         }
@@ -304,6 +309,10 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
     }
+
+    void saveUserDataClicked(final View view) {
+        SaveUserInputData();
+    }
         
     void uploadClicked(final View view) {
         // Start uploading
@@ -314,18 +323,20 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
                 String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(7000) + "}}";
                 mqttPublish(timePayload);
                 Toast.makeText(MQTTActivity.this, "Bắt đầu gửi dữ liệu", Toast.LENGTH_LONG).show();
-                publishTimer = new CountDownTimer(11000, 1000) {
+                publishTimer = new CountDownTimer(6000, 1000) {
                     @Override
                     public void onTick(long millisUntilFinished) {
                         publishCounterValue++;
-                        mIntent = getIntent();
-                        sharedMeasuredValues = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-                        float getTemperatureValue = sharedMeasuredValues.getFloat("SHARED_TEMPERATURE_VALUE", 0);
-                        displayTemperature.setText(String.valueOf(getTemperatureValue));
+//                        sharedMeasuredValues = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+//                        float getTemperatureValue = sharedMeasuredValues.getFloat("SHARED_TEMPERATURE_VALUE", 0);
+//                        displayTemperature.setText(String.valueOf(getTemperatureValue));
                     }
 
                     @Override
                     public void onFinish() {
+                        Intent mIntent = getIntent();
+                        float UploadedTemperature = mIntent.getFloatExtra("SHARE_TEMPERATURE", 0);
+                        displayTemperature.setText(String.valueOf(UploadedTemperature));
                         String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(publishCounterValue) + ","
                                 + "\"Body temperature\":" + String.valueOf(UploadedTemperature) + "}}";
                         mqttPublish(timePayload);

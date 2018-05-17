@@ -130,7 +130,8 @@
             android:layout_marginTop="200dp"
             android:text="@string/mqtt_display_send_temperature"
             android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:visibility="gone"/>
         <no.nordicsemi.android.nrftoolbox.widget.TrebuchetTextView
             android:id="@+id/temperature_display"
             android:layout_width="wrap_content"
@@ -140,7 +141,8 @@
             android:layout_marginStart="160dp"
             android:layout_marginTop="200dp"
             android:text="@string/mqtt_display_send_temperature"
-            android:textSize="20sp" />
+            android:textSize="20sp"
+            android:visibility="gone"/>
 
         <no.nordicsemi.android.nrftoolbox.widget.TrebuchetTextView
             android:id="@+id/text_send_temperature_type_label"
@@ -151,7 +153,8 @@
             android:layout_marginStart="25dp"
             android:layout_marginTop="230dp"
             android:text="@string/mqtt_display_send_temperature_type"
-            android:textSize="17sp" />
+            android:textSize="17sp"
+            android:visibility="gone"/>
 
         <no.nordicsemi.android.nrftoolbox.widget.TrebuchetTextView
             android:id="@+id/text_send_heart_rate_label"
@@ -163,8 +166,8 @@
             android:layout_marginTop="280dp"
             android:text="@string/mqtt_display_send_heart_rate"
             android:textSize="20sp"
-            android:textStyle="bold" />
-
+            android:textStyle="bold"
+            android:visibility="gone"/>
         <no.nordicsemi.android.nrftoolbox.widget.TrebuchetTextView
             android:id="@+id/text_send_heart_rate_location_label"
             android:layout_width="wrap_content"
@@ -174,7 +177,8 @@
             android:layout_marginStart="25dp"
             android:layout_marginTop="310dp"
             android:text="@string/mqtt_display_send_heart_rate_location"
-            android:textSize="17sp" />
+            android:textSize="17sp"
+            android:visibility="gone"/>
 
         <Button
             android:id="@+id/action_server_connect"
@@ -183,10 +187,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
             android:layout_marginBottom="@dimen/activity_vertical_margin_bottom"
             android:layout_marginLeft="@dimen/activity_horizontal_margin"
             android:onClick="onServerConnectClicked"
-            android:text="@string/action_connect" />
+            android:text="@string/action_connect"
+            android:visibility="gone"/>
 
         <Button
             android:id="@+id/action_upload"
@@ -198,7 +204,21 @@
             android:layout_alignParentEnd="true"
             android:layout_marginEnd="16dp"
             android:onClick="onUploadClicked"
-            android:text="@string/action_upload" />
+            android:text="@string/action_upload"
+            android:visibility="gone"/>
+
+        <Button
+            android:id="@+id/action_save_user_config_data"
+            style="@style/Widget.Connect"
+            Horizontal="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="@dimen/activity_vertical_margin_bottom"
+            android:layout_marginLeft="@dimen/activity_horizontal_margin"
+            android:onClick="onServerConnectClicked"
+            android:text="@string/action_save_data" />
 
     </no.nordicsemi.android.nrftoolbox.widget.ForegroundRelativeLayout>
 </LinearLayout>

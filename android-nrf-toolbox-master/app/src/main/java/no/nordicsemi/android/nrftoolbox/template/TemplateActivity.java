@@ -90,6 +90,8 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	float[] dataArray;
 
 	public SharedPreferences sharedMeasuredValues;
+	public Intent myTemplateIntent;
+    boolean isFirstStart = true;
 
 	@Override
 	protected void onCreateView(final Bundle savedInstanceState) {
@@ -99,11 +101,14 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		setGUI();
 		startShowGraph();
+        myTemplateIntent = new Intent(this, MQTTActivity.class);
+        myTemplateIntent.setAction("TEMPERATURE_ACTION");
 	}
 
 	void startShowGraph() {
 		isGraphInProgress = true;
 		mRepeatTask.run();
+
 	}
 
 	void stopShowGraph() {
@@ -326,15 +331,20 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 			}
 			setData(dataArray);
 			mChart.invalidate();
-			sharedMeasuredValues = PreferenceManager.getDefaultSharedPreferences(TemplateActivity.this);
-			SharedPreferences.Editor sharedMeasuredValuesEditor = sharedMeasuredValues.edit();
-			sharedMeasuredValuesEditor.putFloat("SHARED_TEMPERATURE_VALUE", mHTSValue);
-			sharedMeasuredValuesEditor.apply();
+//			sharedMeasuredValues = PreferenceManager.getDefaultSharedPreferences(TemplateActivity.this);
+//			SharedPreferences.Editor sharedMeasuredValuesEditor = sharedMeasuredValues.edit();
+//			sharedMeasuredValuesEditor.putFloat("SHARED_TEMPERATURE_VALUE", mHTSValue);
+//			sharedMeasuredValuesEditor.apply();
+//
+//			SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(TemplateActivity.this);
+//			SharedPreferences.Editor editor = preferences.edit();
 
-			SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(TemplateActivity.this);
-			SharedPreferences.Editor editor = preferences.edit();
-			
 			//startActivity(myIntent);
+            myTemplateIntent.putExtra("SHARE_TEMPERATURE", mHTSValue);
+            if (isFirstStart) {
+                startActivity(myTemplateIntent);
+                isFirstStart = false;
+            }
 		}
 	}
 

@@ -45,6 +45,7 @@
     <string name="action_disconnecting">ĐANG NGẮT KẾT NỐI…</string>
     <string name="action_upload">GỬI DỮ LIỆU</string>
     <string name="action_uploading">NGƯNG GỬI</string>
+    <string name="action_save_data">LƯU</string>
 
     <string name="drawer_open">Open</string>
     <string name="drawer_close">Close</string>
