@@ -180,32 +180,32 @@
             android:textSize="17sp"
             android:visibility="gone"/>
 
-        <Button
-            android:id="@+id/action_server_connect"
-            style="@style/Widget.Connect"
-            Horizontal="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:layout_marginBottom="@dimen/activity_vertical_margin_bottom"
-            android:layout_marginLeft="@dimen/activity_horizontal_margin"
-            android:onClick="onServerConnectClicked"
-            android:text="@string/action_connect"
-            android:visibility="gone"/>
+        <!--<Button-->
+            <!--android:id="@+id/action_server_connect"-->
+            <!--style="@style/Widget.Connect"-->
+            <!--Horizontal="true"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_alignParentBottom="true"-->
+            <!--android:layout_centerHorizontal="true"-->
+            <!--android:layout_marginBottom="@dimen/activity_vertical_margin_bottom"-->
+            <!--android:layout_marginLeft="@dimen/activity_horizontal_margin"-->
+            <!--android:onClick="onServerConnectClicked"-->
+            <!--android:text="@string/action_connect"-->
+            <!--android:visibility="gone"/>-->
 
-        <Button
-            android:id="@+id/action_upload"
-            style="@style/Widget.Connect"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignBaseline="@+id/action_server_connect"
-            android:layout_alignBottom="@+id/action_server_connect"
-            android:layout_alignParentEnd="true"
-            android:layout_marginEnd="16dp"
-            android:onClick="onUploadClicked"
-            android:text="@string/action_upload"
-            android:visibility="gone"/>
+        <!--<Button-->
+            <!--android:id="@+id/action_upload"-->
+            <!--style="@style/Widget.Connect"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_alignBaseline="@+id/action_server_connect"-->
+            <!--android:layout_alignBottom="@+id/action_server_connect"-->
+            <!--android:layout_alignParentEnd="true"-->
+            <!--android:layout_marginEnd="16dp"-->
+            <!--android:onClick="onUploadClicked"-->
+            <!--android:text="@string/action_upload"-->
+            <!--android:visibility="gone"/>-->
 
         <Button
             android:id="@+id/action_save_user_config_data"
@@ -217,7 +217,7 @@
             android:layout_centerHorizontal="true"
             android:layout_marginBottom="@dimen/activity_vertical_margin_bottom"
             android:layout_marginLeft="@dimen/activity_horizontal_margin"
-            android:onClick="onServerConnectClicked"
+            android:onClick="onSaveUserConfigDataClicked"
             android:text="@string/action_save_data" />
 
     </no.nordicsemi.android.nrftoolbox.widget.ForegroundRelativeLayout>
