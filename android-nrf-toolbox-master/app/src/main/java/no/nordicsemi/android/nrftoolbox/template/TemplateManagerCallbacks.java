@@ -48,6 +48,8 @@ public interface TemplateManagerCallbacks extends BleManagerCallbacks {
 	 * @param value
 	 *            the new value
 	 */
-	void onSampleValueReceived(final BluetoothDevice device, float value);
+	void onSampleValueReceived(final BluetoothDevice device, float value, int extraHR);
+
+//	void onHeartRateValueParsed(final  BluetoothDevice device, int value);
 
 }

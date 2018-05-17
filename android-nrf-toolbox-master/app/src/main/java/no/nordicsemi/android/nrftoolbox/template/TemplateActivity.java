@@ -92,6 +92,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	private boolean isGraphInProgress = false;
 
 	float mHTSValue;
+	int   mHRValue;
 
 	// TODO change view references to match your need
 	private TextView mValueView, mRHTSType;
@@ -307,21 +308,16 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
                 String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(7000) + "}}";
                 mqttPublish(timePayload);
                 Toast.makeText(TemplateActivity.this, "Bắt đầu gửi dữ liệu", Toast.LENGTH_LONG).show();
-                publishTimer = new CountDownTimer(6000, 1000) {
+                publishTimer = new CountDownTimer(11000, 1000) {
                     @Override
                     public void onTick(long millisUntilFinished) {
-                        publishCounterValue++;
                     }
 
                     @Override
                     public void onFinish() {
-                        String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(publishCounterValue) + ","
+                        String SensorValues = "{\"d\":{" + "\"Heart Rate value\":" + String.valueOf(mHRValue) + ","
                                 + "\"Body temperature\":" + String.valueOf(mHTSValue) + "}}";
-                        mqttPublish(timePayload);
-                        // Test
-                        if ((publishCounterValue % 100) == 0) {
-                            publishCounterValue = 0;
-                        }
+                        mqttPublish(SensorValues);
                         publishTimer.start();
                     }
                 }.start();
@@ -582,6 +578,8 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 			if (TemplateService.BROADCAST_RHTS_MEASUREMENT.equals(action)) {
 				final float value = intent.getFloatExtra(TemplateService.EXTRA_DATA, 0);
 				mHTSValue = value;
+				final int extraHR = intent.getIntExtra(TemplateService.EXTRA_HEART_RATE_DATA, 0);
+				mHRValue  = extraHR;
 				// Update GUI
 				setValueOnView(value, TemplateService.displayTemperatureType);
 			}
