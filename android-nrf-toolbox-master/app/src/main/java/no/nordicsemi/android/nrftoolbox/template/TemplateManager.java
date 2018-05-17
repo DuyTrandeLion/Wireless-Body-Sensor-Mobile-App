@@ -137,7 +137,7 @@ public class TemplateManager extends BleManager<TemplateManagerCallbacks> {
 			int         parseHeartRate              = intCombinedTemperatureAndHR % 1000;
 //			float       displayHeartRate            = parseHeartRate/(float)1.0;
 
-			mCallbacks.onSampleValueReceived(gatt.getDevice(), displayTemperature);
+			mCallbacks.onSampleValueReceived(gatt.getDevice(), displayTemperature, parseHeartRate);
 //			mCallbacks.onSampleValueReceived(gatt.getDevice(), displayHeartRate);
 		}
 

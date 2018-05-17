@@ -30,6 +30,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.PersistableBundle;
 import android.preference.PreferenceManager;
@@ -39,8 +40,9 @@ import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.SeekBar;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.LimitLine;
@@ -49,6 +51,15 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
+
+import org.eclipse.paho.android.service.MqttAndroidClient;
+import org.eclipse.paho.client.mqttv3.IMqttActionListener;
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.IMqttToken;
+import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -64,7 +75,7 @@ import no.nordicsemi.android.nrftoolbox.template.settings.SettingsFragment;
 /**
  * Modify the Template Activity to match your needs.
  */
-public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateService.TemplateBinder> {
+public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateService.TemplateBinder> implements View.OnClickListener {
 	@SuppressWarnings("unused")
 	private final String TAG = "ReplaceHTSActivity";
 
@@ -81,6 +92,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	private boolean isGraphInProgress = false;
 
 	float mHTSValue;
+	int   mHRValue;
 
 	// TODO change view references to match your need
 	private TextView mValueView, mRHTSType;
@@ -89,9 +101,28 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	private LineChart mChart;
 	float[] dataArray;
 
-	public SharedPreferences sharedMeasuredValues;
-	public Intent myTemplateIntent;
-    boolean isFirstStart = true;
+	int publishCounterValue;
+
+	// Save state
+	String PreferenceKey = "SavedKey";
+
+	private String mqttEventTopic   = "iot-2/evt/status/fmt/json";
+	private int    mqttKeepAlive    = 10;                          /* in sec */
+
+	private String mqttHostName;
+	private String mqttClientID;
+	private String mqttDeviceName;
+	private String mqttAuthMethod;
+	private String mqttAuthToken;
+
+	private static MqttAndroidClient  mqttClient  = null;
+	private static MqttConnectOptions mqttOptions = null;
+	private static CountDownTimer     publishTimer;
+
+	private boolean isUploading = false;
+
+	Button uploadDataButton;
+	Button connectServerButton;
 
 	@Override
 	protected void onCreateView(final Bundle savedInstanceState) {
@@ -99,10 +130,213 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		setContentView(R.layout.activity_feature_template);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+		connectServerButton = findViewById(R.id.action_mqtt_connect);
+		uploadDataButton    = findViewById(R.id.action_upload);
+
+		SharedPreferences prefs  = getSharedPreferences(PreferenceKey, MODE_PRIVATE);
+		mqttDeviceName = prefs.getString("SAVE_INPUT_DEVICE_NAME", null);
+		mqttAuthMethod = prefs.getString("SAVE_INPUT_AUTH_METHOD", null);
+		mqttAuthToken  = prefs.getString("SAVE_INPUT_AUTH_TOKEN", null);
+		mqttHostName   = prefs.getString("SAVE_MQTT_HOST", null);
+		mqttClientID   = prefs.getString("SAVE_CLIENT_ID", null);
+
+		if (checkMQTTConnectStatus()) {
+			connectServerButton.setText(R.string.action_mqtt_disconnect);
+			isUploading = prefs.getBoolean("SAVE_UPLOADING_STATE", false);
+			if (isUploading) {
+				uploadDataButton.setText(R.string.action_uploading);
+			}
+			else {
+				uploadDataButton.setText(R.string.action_uploading);
+			}
+		}
+		else {
+			connectServerButton.setText(R.string.action_mqtt_connect);
+			uploadDataButton.setText(R.string.action_upload);
+		}
+
+
+
+		connectServerButton.setOnClickListener(this);
+		uploadDataButton.setOnClickListener(this);
+
 		setGUI();
 		startShowGraph();
-        myTemplateIntent = new Intent(this, MQTTActivity.class);
-        myTemplateIntent.setAction("TEMPERATURE_ACTION");
+	}
+
+	private boolean checkMQTTConnectStatus() {
+		if (mqttClient == null) {
+			return false;
+		}
+		else if (!mqttClient.isConnected()) {
+			return false;
+		}
+		return true;
+	}
+
+	private void createMQTTClient() {
+		mqttClient = new MqttAndroidClient(this.getApplicationContext(), mqttHostName, mqttClientID);
+		mqttOptions = new MqttConnectOptions();
+
+		mqttOptions.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1);
+		mqttOptions.setUserName(mqttAuthMethod);
+		mqttOptions.setPassword(mqttAuthToken.toCharArray());
+		mqttOptions.setKeepAliveInterval(mqttKeepAlive);
+	}
+
+	private void setSubcribeCallback() {
+		mqttClient.setCallback(new MqttCallback() {
+			@Override
+			public void connectionLost(Throwable cause) {
+				Toast.makeText(TemplateActivity.this, "Connection Lost!", Toast.LENGTH_LONG).show();
+			}
+
+			@Override
+			public void messageArrived(String topic, MqttMessage message) throws Exception {
+
+			}
+
+			@Override
+			public void deliveryComplete(IMqttDeliveryToken token) {
+
+			}
+		});
+	}
+
+	private void mqttConnect() {
+		try {
+			IMqttToken MQTTToken = mqttClient.connect(mqttOptions);
+			MQTTToken.setActionCallback(new IMqttActionListener() {
+				@Override
+				public void onSuccess(IMqttToken asyncActionToken) {
+					String payload = "{" + "\"Client ID\":" + "\"" + mqttClientID + "\"" + "}";
+					connectServerButton.setText(R.string.action_mqtt_disconnect);
+					mqttPublish(payload);
+					Toast.makeText(TemplateActivity.this, "Đã kết nối với server", Toast.LENGTH_LONG).show();
+				}
+
+				@Override
+				public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+					Toast.makeText(TemplateActivity.this, "Kết nối thất bại", Toast.LENGTH_LONG).show();
+				}
+			});
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void mqttDisconnect() {
+		try {
+			IMqttToken disconToken = mqttClient.disconnect();
+			disconToken.setActionCallback(new IMqttActionListener() {
+				@Override
+				public void onSuccess(IMqttToken asyncActionToken) {
+					connectServerButton.setText(R.string.action_mqtt_connect);
+					Toast.makeText( TemplateActivity.this, "Đã ngắt kết nối với server", Toast.LENGTH_LONG).show();
+				}
+
+				@Override
+				public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+
+				}
+			});
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	private void mqttPublish(String payload) {
+		try {
+			mqttClient.publish(mqttEventTopic, payload.getBytes(), 0, false);
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private boolean checkValidInfo() {
+		if (mqttDeviceName.equals("")) {
+			return false;
+		}
+		if (mqttAuthMethod.equals("")) {
+			return false;
+		}
+		if (mqttAuthToken.equals("")) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	public void onClick(View v) {
+		if (v.getId() == R.id.action_mqtt_connect) {
+			if (!checkValidInfo()) {
+				Toast.makeText(this, "Vui lòng điền đẩy đủ cấu hình mạng", Toast.LENGTH_LONG).show();
+			}
+			else {
+				serverConnectClicked(v);
+			}
+		}
+		else if (v.getId() == R.id.action_upload) {
+			uploadClicked(v);
+		}
+	}
+
+	void serverConnectClicked(final View view) {
+		// Connect to server
+		if (!checkMQTTConnectStatus()) {
+			createMQTTClient();
+			mqttConnect();
+		}
+		else {
+			if (isUploading) {
+				Toast.makeText(this, "Please stop uploading first", Toast.LENGTH_LONG).show();
+			}
+			else {
+				mqttDisconnect();
+			}
+		}
+	}
+
+	void uploadClicked(final View view) {
+		// Start uploading
+		if (checkMQTTConnectStatus()) {
+			if (!isUploading) {
+				isUploading  = true;
+				uploadDataButton.setText(R.string.action_uploading);
+				String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(7000) + "}}";
+				mqttPublish(timePayload);
+				Toast.makeText(TemplateActivity.this, "Bắt đầu gửi dữ liệu", Toast.LENGTH_LONG).show();
+				publishTimer = new CountDownTimer(11000, 1000) {
+					@Override
+					public void onTick(long millisUntilFinished) {
+					}
+
+					@Override
+					public void onFinish() {
+						String SensorValues = "{\"d\":{" + "\"Heart Rate value\":" + String.valueOf(mHRValue) + ","
+								+ "\"Body temperature\":" + String.valueOf(mHTSValue) + "}}";
+						mqttPublish(SensorValues);
+						publishTimer.start();
+					}
+				}.start();
+			}
+			else {
+				publishTimer.cancel();
+				isUploading = false;
+				String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(8000) + "}}";
+				mqttPublish(timePayload);
+				Toast.makeText(TemplateActivity.this, "Ngưng gửi dữ liệu", Toast.LENGTH_LONG).show();
+				uploadDataButton.setText(R.string.action_upload);
+			}
+		}
+	}
+
+	private void SaveUploadState() {
+		SharedPreferences.Editor editor = getSharedPreferences(PreferenceKey, MODE_PRIVATE).edit();
+		editor.putBoolean("SAVE_UPLOADING_STATE", isUploading);
+		editor.apply();
 	}
 
 	void startShowGraph() {
@@ -151,9 +385,11 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
+		SaveUploadState();
 		stopShowGraph();
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(mBroadcastReceiver);
 	}
+
 
 	@Override
 	public void onRestoreInstanceState(Bundle savedInstanceState, PersistableBundle persistentState) {
@@ -331,13 +567,6 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 			}
 			setData(dataArray);
 			mChart.invalidate();
-
-			//startActivity(myIntent);
-            myTemplateIntent.putExtra("SHARE_TEMPERATURE", mHTSValue);
-            if (isFirstStart) {
-                startActivity(myTemplateIntent);
-                isFirstStart = false;
-            }
 		}
 	}
 
@@ -349,6 +578,8 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 			if (TemplateService.BROADCAST_RHTS_MEASUREMENT.equals(action)) {
 				final float value = intent.getFloatExtra(TemplateService.EXTRA_DATA, 0);
 				mHTSValue = value;
+				final int extraHR = intent.getIntExtra(TemplateService.EXTRA_HEART_RATE_DATA, 0);
+				mHRValue  = extraHR;
 				// Update GUI
 				setValueOnView(value, TemplateService.displayTemperatureType);
 			}
@@ -400,7 +631,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		LineDataSet temperatureDataSet;
 
 		if (mChart.getData() != null &&
-			mChart.getData().getDataSetCount() > 0) {
+				mChart.getData().getDataSetCount() > 0) {
 
 			temperatureDataSet = (LineDataSet) mChart.getData().getDataSetByIndex(0);
 			temperatureDataSet.setValues(values);

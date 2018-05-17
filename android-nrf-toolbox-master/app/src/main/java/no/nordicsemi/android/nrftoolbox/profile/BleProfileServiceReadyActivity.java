@@ -31,9 +31,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
@@ -54,6 +56,7 @@ import no.nordicsemi.android.log.LocalLogSession;
 import no.nordicsemi.android.log.Logger;
 import no.nordicsemi.android.nrftoolbox.AppHelpFragment;
 import no.nordicsemi.android.nrftoolbox.R;
+import no.nordicsemi.android.nrftoolbox.mqtt.MQTTActivity;
 import no.nordicsemi.android.nrftoolbox.scanner.ScannerFragment;
 import no.nordicsemi.android.nrftoolbox.utility.DebugLogger;
 
@@ -96,6 +99,8 @@ public abstract class BleProfileServiceReadyActivity<E extends BleProfileService
 	private ILogSession mLogSession;
 	private BluetoothDevice mBluetoothDevice;
 	private String mDeviceName;
+
+//	Button uploadData;
 
 	private final BroadcastReceiver mCommonBroadcastReceiver = new BroadcastReceiver() {
 		@Override
@@ -373,8 +378,8 @@ public abstract class BleProfileServiceReadyActivity<E extends BleProfileService
 	protected final void setUpView() {
 		// set GUI
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-		mConnectButton = findViewById(R.id.action_connect);
-		mDeviceNameView = findViewById(R.id.device_name);
+		mConnectButton    = findViewById(R.id.action_connect);
+		mDeviceNameView   = findViewById(R.id.device_name);
 		mBatteryLevelView = findViewById(R.id.battery);
 	}
 
