@@ -43,6 +43,7 @@ import no.nordicsemi.android.nrftoolbox.profile.BleProfileService;
 public class TemplateService extends BleProfileService implements TemplateManagerCallbacks {
 	public static final String BROADCAST_RHTS_MEASUREMENT = "no.nordicsemi.android.nrftoolbox.rhts.BROADCAST_RHTS_MEASUREMENT";
 	public static final String EXTRA_DATA = "no.nordicsemi.android.nrftoolbox.template.EXTRA_DATA";
+	public static final String EXTRA_HEART_RATE_DATA = "no.nordicsemi.android.nrftoolbox.template.EXTRA_HEART_RATE_DATA";
 
 	public static String displayTemperatureType;
 	private final static String ACTION_DISCONNECT = "no.nordicsemi.android.nrftoolbox.template.ACTION_DISCONNECT";
@@ -109,10 +110,11 @@ public class TemplateService extends BleProfileService implements TemplateManage
 	}
 
 	@Override
-	public void onSampleValueReceived(final BluetoothDevice device, final float value) {
+	public void onSampleValueReceived(final BluetoothDevice device, final float value, final int extraHR) {
 		final Intent broadcast = new Intent(BROADCAST_RHTS_MEASUREMENT);
 		broadcast.putExtra(EXTRA_DEVICE, getBluetoothDevice());
 		broadcast.putExtra(EXTRA_DATA, value);
+		broadcast.putExtra(EXTRA_HEART_RATE_DATA, extraHR);
 		LocalBroadcastManager.getInstance(this).sendBroadcast(broadcast);
 
 		if (!mBinded) {

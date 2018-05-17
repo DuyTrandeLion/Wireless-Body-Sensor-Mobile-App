@@ -47,7 +47,8 @@
 			android:text="@string/template_feature_title_long"
 			android:textColor="@color/darkGray"
 			android:textSize="32dp"
-			android:textStyle="bold"/>
+			android:textStyle="bold"
+			android:id="@+id/trebuchetBoldTextView5" />
 
 		<TextView
 			android:id="@+id/battery"
@@ -136,7 +137,7 @@
 		<com.github.mikephil.charting.charts.LineChart
 			android:id="@+id/chart1"
 			android:layout_width="match_parent"
-			android:layout_height="330dp"
+			android:layout_height="350dp"
 			android:layout_above="@+id/action_connect"
 			android:layout_alignParentStart="true" />
 
@@ -147,10 +148,32 @@
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:layout_alignParentBottom="true"
-			android:layout_centerHorizontal="true"
-			android:layout_marginBottom="@dimen/activity_vertical_margin_bottom"
+			android:layout_marginBottom="12dp"
+			android:layout_toEndOf="@+id/trebuchetBoldTextView5"
 			android:onClick="onConnectClicked"
-			android:text="@string/action_connect"/>
+			android:text="@string/action_connect" />
+
+		<Button
+			android:id="@+id/action_upload"
+			style="@style/Widget.Connect"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_alignParentEnd="true"
+			android:layout_below="@+id/chart1"
+			android:onClick="onUploadClicked"
+			android:text="@string/action_upload" />
+
+		<Button
+			android:id="@+id/action_mqtt_connect"
+			style="@style/Widget.Connect"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_below="@+id/chart1"
+			android:layout_marginEnd="26dp"
+			android:layout_toStartOf="@+id/action_upload"
+			android:onClick="onMQTTConnectClicked"
+			android:text="@string/action_mqtt_connect" />
+
 
 		<ImageView
 			android:layout_width="wrap_content"

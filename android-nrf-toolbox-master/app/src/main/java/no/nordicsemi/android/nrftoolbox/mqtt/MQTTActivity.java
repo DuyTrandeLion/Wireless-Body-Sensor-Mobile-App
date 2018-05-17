@@ -1,6 +1,8 @@
 package no.nordicsemi.android.nrftoolbox.mqtt;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -24,6 +26,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 
 import no.nordicsemi.android.nrftoolbox.R;
+import no.nordicsemi.android.nrftoolbox.template.TemplateActivity;
 
 public class MQTTActivity extends AppCompatActivity implements View.OnClickListener {
     private String mqttDeviceType   = "HTC_FONE";
@@ -40,7 +43,7 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
     String mqttAuthToken;
     int    mqttPort;
 
-    boolean isUploading = false;
+    public boolean isUploading = false;
 
     private static MqttAndroidClient  mqttClient  = null;
     private static MqttConnectOptions mqttOptions = null;
@@ -51,19 +54,25 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
     EditText txtInputAuthMethod;
     EditText txtInputAuthToken;
     TextView txtInputPort;
+    TextView displayTemperature;
 
     // Button
-    Button connectServerButton;
-    Button uploadDataButton;
+//    Button connectServerButton;
+//    Button uploadDataButton;
+    Button saveUserDataButton;
 
     // Save state
     String PreferenceKey = "SavedKey";
-    String mqttDeviceNameState;
-    String mqttAuthMethodState;
-    String mqttAuthTokenState;
 
     // Test data
     long publishCounterValue = 0;
+
+    // Upload data
+//    Intent mIntent;
+//    int UploadedHeartRate;
+//    float UploadedTemperature;
+
+    public SharedPreferences sharedMeasuredValues;
 
     @Override
     public void onBackPressed() {
@@ -79,16 +88,7 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onPause() {
         super.onPause();
-        if (txtInputDeviceName.getText().toString() != null &
-                txtInputAuthMethod.getText().toString() != null &
-                txtInputAuthToken.getText().toString() != null) {
-            SharedPreferences.Editor editor = getSharedPreferences(PreferenceKey, MODE_PRIVATE).edit();
-            editor.putString("SAVE_INPUT_DEVICE_NAME", txtInputDeviceName.getText().toString());
-            editor.putString("SAVE_INPUT_AUTH_METHOD", txtInputAuthMethod.getText().toString());
-            editor.putString("SAVE_INPUT_AUTH_TOKEN", txtInputAuthToken.getText().toString());
-            
-            editor.apply();
-        }
+        SaveUserInputData();
     }
 
     @Override
@@ -100,29 +100,42 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
         txtInputAuthMethod  = findViewById(R.id.input_auth_method);
         txtInputAuthToken   = findViewById(R.id.input_auth_token);
 //        txtInputPort        = findViewById(R.id.input_mqtt_port);
+        displayTemperature  = findViewById(R.id.temperature_display);
 
-        connectServerButton = findViewById(R.id.action_server_connect);
-        uploadDataButton    = findViewById(R.id.action_upload);
+//        connectServerButton = findViewById(R.id.action_server_connect);
+//        uploadDataButton    = findViewById(R.id.action_upload);
+        saveUserDataButton  = findViewById(R.id.action_save_user_config_data);
 
         if (savedInstanceState != null) {
             txtInputDeviceName.setText("InputDeviceNameState");
             txtInputAuthMethod.setText("InputAuthMethodState");
             txtInputAuthToken.setText("InputAuthTokenState");
-
-            connectServerButton.setText("ConnectServerButtonState");
-            uploadDataButton.setText("UploadDataButtonState");
         }
 
         SharedPreferences prefs  = getSharedPreferences(PreferenceKey, MODE_PRIVATE);
         txtInputDeviceName.setText(prefs.getString("SAVE_INPUT_DEVICE_NAME", null));
         txtInputAuthMethod.setText(prefs.getString("SAVE_INPUT_AUTH_METHOD", null));
         txtInputAuthToken.setText(prefs.getString("SAVE_INPUT_AUTH_TOKEN", null));
-        connectServerButton.setText(prefs.getString("SAVE_CONNECT_SERVER_BUTTON", "CONNECT"));
-        uploadDataButton.setText(prefs.getString("SAVE_UPLOAD_DATA_BUTTON", "UPLOAD"));
+        //isUploading = prefs.getBoolean("SAVE_UPLOADING_STATE", false);
 
-        connectServerButton.setOnClickListener(this);
-        uploadDataButton.setOnClickListener(this);
-
+//        if (checkMQTTConnectStatus()) {
+//            connectServerButton.setText(R.string.action_disconnect);
+//            isUploading = prefs.getBoolean("SAVE_UPLOADING_STATE", false);
+//            if (isUploading) {
+//                uploadDataButton.setText(R.string.action_uploading);
+//            }
+//            else {
+//                uploadDataButton.setText(R.string.action_uploading);
+//            }
+//        }
+//        else {
+//            connectServerButton.setText(R.string.action_connect);
+//            uploadDataButton.setText(R.string.action_upload);
+//        }
+//
+//        connectServerButton.setOnClickListener(this);
+//        uploadDataButton.setOnClickListener(this);
+        saveUserDataButton.setOnClickListener(this);
     }
 
     private void SaveUserInputData() {
@@ -133,9 +146,10 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
             editor.putString("SAVE_INPUT_DEVICE_NAME", txtInputDeviceName.getText().toString());
             editor.putString("SAVE_INPUT_AUTH_METHOD", txtInputAuthMethod.getText().toString());
             editor.putString("SAVE_INPUT_AUTH_TOKEN", txtInputAuthToken.getText().toString());
+            editor.putString("SAVE_MQTT_HOST", mqttHostName);
+            editor.putString("SAVE_CLIENT_ID", mqttClientID);
 
-            editor.putString("SAVE_CONNECT_SERVER_BUTTON", connectServerButton.getText().toString());
-            editor.putString("SAVE_UPLOAD_DATA_BUTTON", uploadDataButton.getText().toString());
+//            editor.putBoolean("SAVE_UPLOADING_STATE", isUploading);
 
             editor.apply();
         }
@@ -144,24 +158,40 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         // TODO
-        SaveUserInputData();
-        if (v.getId() == R.id.action_server_connect) {
+//        mqttClientID   = "d:" + mqttOrganization + ":" + mqttDeviceType + ":" + mqttDeviceName;
+//        SaveUserInputData();
+//        if (v.getId() == R.id.action_server_connect) {
+//            mqttDeviceName = txtInputDeviceName.getText().toString();
+//            mqttAuthMethod = txtInputAuthMethod.getText().toString();
+//            mqttAuthToken  = txtInputAuthToken.getText().toString();
+//            if (!checkValidInfo()) {
+//                Toast.makeText(MQTTActivity.this, "Please fill in the blanks first", Toast.LENGTH_LONG).show();
+//            }
+//            else {
+//                mqttClientID   = "d:" + mqttOrganization + ":" + mqttDeviceType + ":" + mqttDeviceName;
+//                serverConnectClicked(v);
+//            }
+//        }
+//        else if (v.getId() == R.id.action_upload) {
+//            uploadClicked(v);
+//        }
+//        else if (v.getId() == R.id.action_save_user_config_data) {
+//            Toast.makeText(MQTTActivity.this, "Lưu thành công", Toast.LENGTH_LONG).show();
+//            SaveUserInputData();
+//            saveUserDataClicked(v);
+//        }
+        if (v.getId() == R.id.action_save_user_config_data) {
             mqttDeviceName = txtInputDeviceName.getText().toString();
             mqttAuthMethod = txtInputAuthMethod.getText().toString();
             mqttAuthToken  = txtInputAuthToken.getText().toString();
-//            mqttPort       = Integer.parseInt(txtInputPort.getText().toString());
-//            mqttClientID   = "d:" + mqttOrganization + ":" + mqttDeviceType + ":" + mqttDeviceName;
-//            serverConnectClicked(v);
             if (!checkValidInfo()) {
-                Toast.makeText(MQTTActivity.this, "Please fill in the blanks first", Toast.LENGTH_LONG).show();
+                Toast.makeText(MQTTActivity.this, "Vui lòng điền đủ thông tin", Toast.LENGTH_LONG).show();
             }
             else {
                 mqttClientID   = "d:" + mqttOrganization + ":" + mqttDeviceType + ":" + mqttDeviceName;
-                serverConnectClicked(v);
+                SaveUserInputData();
+                Toast.makeText(MQTTActivity.this, "Lưu thành công!", Toast.LENGTH_LONG).show();
             }
-        }
-        else if (v.getId() == R.id.action_upload) {
-            uploadClicked(v);
         }
     }
 
@@ -176,8 +206,7 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
             outState.putString("InputAuthMethodState", txtInputAuthMethod.getText().toString());
             outState.putString("InputAuthTokenState", txtInputAuthToken.getText().toString());
 
-            outState.putString("ConnectServerButtonState", connectServerButton.getText().toString());
-            outState.putString("UploadDataButtonState", uploadDataButton.getText().toString());
+            outState.putBoolean("PublishState", isUploading);
         }
     }
 
@@ -223,46 +252,48 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-    private void mqttConnect() {
-        try {
-            IMqttToken MQTTToken = mqttClient.connect(mqttOptions);
-            MQTTToken.setActionCallback(new IMqttActionListener() {
-                @Override
-                public void onSuccess(IMqttToken asyncActionToken) {
-                    String payload = "{" + "\"Client ID\":" + "\"" + mqttClientID + "\"" + "}";
-                    mqttPublish(payload);
-                    connectServerButton.setText(R.string.action_disconnect);
-                }
-
-                @Override
-                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                    Toast.makeText(MQTTActivity.this, "Can't Connect", Toast.LENGTH_LONG).show();
-                }
-            });
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void mqttDisconnect() {
-        try {
-            IMqttToken disconToken = mqttClient.disconnect();
-            disconToken.setActionCallback(new IMqttActionListener() {
-                @Override
-                public void onSuccess(IMqttToken asyncActionToken) {
-                    connectServerButton.setText(R.string.action_connect);
-                }
-
-                @Override
-                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-
-                }
-            });
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
-
-    }
+//    private void mqttConnect() {
+//        try {
+//            IMqttToken MQTTToken = mqttClient.connect(mqttOptions);
+//            MQTTToken.setActionCallback(new IMqttActionListener() {
+//                @Override
+//                public void onSuccess(IMqttToken asyncActionToken) {
+//                    String payload = "{" + "\"Client ID\":" + "\"" + mqttClientID + "\"" + "}";
+//                    mqttPublish(payload);
+//                    connectServerButton.setText(R.string.action_disconnect);
+//                    Toast.makeText(MQTTActivity.this, "Đã kết nối với server", Toast.LENGTH_LONG).show();
+//                }
+//
+//                @Override
+//                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+//                    Toast.makeText(MQTTActivity.this, "Kết nối thất bại", Toast.LENGTH_LONG).show();
+//                }
+//            });
+//        } catch (MqttException e) {
+//            e.printStackTrace();
+//        }
+//    }
+//
+//    private void mqttDisconnect() {
+//        try {
+//            IMqttToken disconToken = mqttClient.disconnect();
+//            disconToken.setActionCallback(new IMqttActionListener() {
+//                @Override
+//                public void onSuccess(IMqttToken asyncActionToken) {
+//                    connectServerButton.setText(R.string.action_connect);
+//                    Toast.makeText(MQTTActivity.this, "Đã ngắt kết nối với server", Toast.LENGTH_LONG).show();
+//                }
+//
+//                @Override
+//                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+//
+//                }
+//            });
+//        } catch (MqttException e) {
+//            e.printStackTrace();
+//        }
+//
+//    }
 
     private void mqttPublish(String payload) {
         try {
@@ -272,7 +303,7 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    boolean checkMQTTConnectStatus() {
+    public boolean checkMQTTConnectStatus() {
         if (mqttClient == null) {
             return false;
         }
@@ -282,55 +313,68 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
         return true;
     }
 
-    void serverConnectClicked(final View view) {
-        // Connect to server
-        if (!checkMQTTConnectStatus()) {
-            createMQTTClient();
-            mqttConnect();
-        }
-        else {
-            if (isUploading) {
-                Toast.makeText(MQTTActivity.this, "Please stop uploading first", Toast.LENGTH_LONG).show();
-            }
-            else {
-                mqttDisconnect();
-            }
-        }
+//    void serverConnectClicked(final View view) {
+//        // Connect to server
+//        if (!checkMQTTConnectStatus()) {
+//            createMQTTClient();
+//            mqttConnect();
+//        }
+//        else {
+//            if (isUploading) {
+//                Toast.makeText(MQTTActivity.this, "Please stop uploading first", Toast.LENGTH_LONG).show();
+//            }
+//            else {
+//                mqttDisconnect();
+//            }
+//        }
+//    }
+
+    void saveUserDataClicked(final View view) {
+        SaveUserInputData();
     }
         
-    void uploadClicked(final View view) {
-        // Start uploading
-        if (checkMQTTConnectStatus()) {
-            if (!isUploading) {
-                isUploading  = true;
-                uploadDataButton.setText(R.string.action_uploading);
-                String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(7000) + "}}";
-                mqttPublish(timePayload);
-
-                publishTimer = new CountDownTimer(11000, 1000) {
-                    @Override
-                    public void onTick(long millisUntilFinished) {
-                        publishCounterValue++;
-                    }
-
-                    @Override
-                    public void onFinish() {
-                        String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(publishCounterValue) + "}}";
-                        mqttPublish(timePayload);
-                        // Test
-                        if ((publishCounterValue % 100) == 0) {
-                            publishCounterValue = 0;
-                        }
-                        publishTimer.start();
-                    }
-                }.start();
-            }
-            else {
-                publishTimer.cancel();
-                isUploading = false;
-                uploadDataButton.setText(R.string.action_upload);
-            }
-        }
-
-    }
+//    void uploadClicked(final View view) {
+//        // Start uploading
+//        if (checkMQTTConnectStatus()) {
+//            if (!isUploading) {
+//                isUploading  = true;
+//                uploadDataButton.setText(R.string.action_uploading);
+//                String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(7000) + "}}";
+//                mqttPublish(timePayload);
+//                Toast.makeText(MQTTActivity.this, "Bắt đầu gửi dữ liệu", Toast.LENGTH_LONG).show();
+//                publishTimer = new CountDownTimer(6000, 1000) {
+//                    @Override
+//                    public void onTick(long millisUntilFinished) {
+//                        publishCounterValue++;
+////                        sharedMeasuredValues = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+////                        float getTemperatureValue = sharedMeasuredValues.getFloat("SHARED_TEMPERATURE_VALUE", 0);
+////                        displayTemperature.setText(String.valueOf(getTemperatureValue));
+//                    }
+//
+//                    @Override
+//                    public void onFinish() {
+//                        Intent mIntent = getIntent();
+//                        float UploadedTemperature = mIntent.getFloatExtra("SHARE_TEMPERATURE", 0);
+//                        displayTemperature.setText(String.valueOf(UploadedTemperature));
+//                        String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(publishCounterValue) + ","
+//                                + "\"Body temperature\":" + String.valueOf(UploadedTemperature) + "}}";
+//                        mqttPublish(timePayload);
+//                        // Test
+//                        if ((publishCounterValue % 100) == 0) {
+//                            publishCounterValue = 0;
+//                        }
+//                        publishTimer.start();
+//                    }
+//                }.start();
+//            }
+//            else {
+//                publishTimer.cancel();
+//                isUploading = false;
+//                String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(8000) + "}}";
+//                mqttPublish(timePayload);
+//                Toast.makeText(MQTTActivity.this, "Ngưng gửi dữ liệu", Toast.LENGTH_LONG).show();
+//                uploadDataButton.setText(R.string.action_upload);
+//            }
+//        }
+//    }
 }
