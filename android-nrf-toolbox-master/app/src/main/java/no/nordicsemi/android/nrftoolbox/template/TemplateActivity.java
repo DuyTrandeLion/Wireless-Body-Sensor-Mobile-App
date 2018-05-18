@@ -98,10 +98,14 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	private TextView mValueView, mRHTSType;
 	private TextView mValueUnitView;
 
+	final String HTS_KEY_COUNT = "HTS_COUNT";
+	final String HRS_KEY_COUNT = "HRS_COUNT";
+	final String HTS_KEY_VAL_PREFIX = "HTS_VAL_";
+	final String HRS_KEY_VAL_PREFIX = "HRS_VAL_";
 	private LineChart mChart;
 	float[] dataArray;
-
-	int publishCounterValue;
+	int[]   HRArray;
+	int maxDatasize = 2592000/2; /* 15 days */
 
 	// Save state
 	String PreferenceKey = "SavedKey";
@@ -122,7 +126,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	private boolean isUploading = false;
 
 	Button uploadDataButton;
-	Button connectServerButton;
+//	Button connectServerButton;
 
 	@Override
 	protected void onCreateView(final Bundle savedInstanceState) {
@@ -131,7 +135,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-		connectServerButton = findViewById(R.id.action_mqtt_connect);
+		//connectServerButton = findViewById(R.id.action_mqtt_connect);
 		uploadDataButton    = findViewById(R.id.action_upload);
 
 		SharedPreferences prefs  = getSharedPreferences(PreferenceKey, MODE_PRIVATE);
@@ -141,8 +145,14 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		mqttHostName   = prefs.getString("SAVE_MQTT_HOST", null);
 		mqttClientID   = prefs.getString("SAVE_CLIENT_ID", null);
 
+		boolean redrawGraph = false;
+		int savedDataSize = prefs.getInt(HTS_KEY_COUNT, 0);
+		if (savedDataSize > 0) {
+			redrawGraph = true;
+		}
+
         if (checkMQTTConnectStatus()) {
-            connectServerButton.setText(R.string.action_mqtt_disconnect);
+            //connectServerButton.setText(R.string.action_mqtt_disconnect);
             isUploading = prefs.getBoolean("SAVE_UPLOADING_STATE", false);
             if (isUploading) {
                 uploadDataButton.setText(R.string.action_uploading);
@@ -152,17 +162,23 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
             }
         }
         else {
-            connectServerButton.setText(R.string.action_mqtt_connect);
+            //connectServerButton.setText(R.string.action_mqtt_connect);
             uploadDataButton.setText(R.string.action_upload);
         }
 
-
-
-        connectServerButton.setOnClickListener(this);
+        //connectServerButton.setOnClickListener(this);
         uploadDataButton.setOnClickListener(this);
 
 		setGUI();
 		startShowGraph();
+		if (redrawGraph) {
+			dataArray = new float[savedDataSize];
+			for (int i = 0; i < savedDataSize; i++) {
+				dataArray[i] = prefs.getFloat(HTS_KEY_VAL_PREFIX + i, 0);
+			}
+			setData(dataArray);
+			mChart.invalidate();
+		}
 	}
 
 	private boolean checkMQTTConnectStatus() {
@@ -211,9 +227,10 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 				@Override
 				public void onSuccess(IMqttToken asyncActionToken) {
 					String payload = "{" + "\"Client ID\":" + "\"" + mqttClientID + "\"" + "}";
-					connectServerButton.setText(R.string.action_mqtt_disconnect);
+					//connectServerButton.setText(R.string.action_mqtt_disconnect);
 					mqttPublish(payload);
 					Toast.makeText(TemplateActivity.this, "Đã kết nối với server", Toast.LENGTH_LONG).show();
+					uploadClicked();
 				}
 
 				@Override
@@ -232,7 +249,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
             disconToken.setActionCallback(new IMqttActionListener() {
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
-                    connectServerButton.setText(R.string.action_mqtt_connect);
+                    //connectServerButton.setText(R.string.action_mqtt_connect);
                     Toast.makeText( TemplateActivity.this, "Đã ngắt kết nối với server", Toast.LENGTH_LONG).show();
                 }
 
@@ -270,17 +287,24 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 
 	@Override
 	public void onClick(View v) {
-        if (v.getId() == R.id.action_mqtt_connect) {
-            if (!checkValidInfo()) {
-                Toast.makeText(this, "Vui lòng điền đẩy đủ cấu hình mạng", Toast.LENGTH_LONG).show();
-            }
-            else {
-                serverConnectClicked(v);
-            }
-        }
-        else if (v.getId() == R.id.action_upload) {
-            uploadClicked(v);
-        }
+		if (v.getId() == R.id.action_upload) {
+			if (!checkValidInfo()) {
+				Toast.makeText(this, "Vui lòng điền đẩy đủ cấu hình mạng", Toast.LENGTH_LONG).show();
+			}
+			else {
+				if (checkMQTTConnectStatus()) {
+					/* Stop uploading first then disconnect with the broker */
+					uploadClicked();
+					if (!isUploading) {
+						serverConnectClicked(v);
+					}
+				}
+				else {
+					/* Connect to the MQTT broker then start uploading */
+					serverConnectClicked(v);
+				}
+			}
+		}
 	}
 
     void serverConnectClicked(final View view) {
@@ -291,7 +315,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
         }
         else {
             if (isUploading) {
-                Toast.makeText(this, "Please stop uploading first", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Stop uploading", Toast.LENGTH_LONG).show();
             }
             else {
                 mqttDisconnect();
@@ -299,7 +323,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
         }
     }
 
-    void uploadClicked(final View view) {
+    void uploadClicked() {
         // Start uploading
         if (checkMQTTConnectStatus()) {
             if (!isUploading) {
@@ -336,6 +360,23 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	private void SaveUploadState() {
 		SharedPreferences.Editor editor = getSharedPreferences(PreferenceKey, MODE_PRIVATE).edit();
 		editor.putBoolean("SAVE_UPLOADING_STATE", isUploading);
+		int dataSize;
+		if (dataArray != null) {
+			dataSize = dataArray.length;
+			editor.putInt(HTS_KEY_COUNT, dataSize);
+			for (int i = 0; i < dataSize; i++) {
+				editor.putFloat(HTS_KEY_VAL_PREFIX + i, dataArray[i]);
+			}
+		}
+
+		if (HRArray != null) {
+			dataSize = HRArray.length;
+			editor.putInt(HRS_KEY_COUNT, dataSize);
+			for (int i = 0; i < dataSize; i++) {
+				editor.putInt(HRS_KEY_VAL_PREFIX + i, HRArray[i]);
+			}
+		}
+
 		editor.apply();
 	}
 
@@ -558,15 +599,41 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 				dataArray[0] = mHTSValue;
 			}
 			else {
-				float[] newDataArray = new float[dataArray.length + 1];
-				for (int i = 0; i < dataArray.length; i++) {
-					newDataArray[i] = dataArray[i];
+				if ((dataArray.length + 1) > maxDatasize) {
+					dataArray = new float[1];
+					dataArray[0] = mHTSValue;
 				}
-				newDataArray[dataArray.length] = mHTSValue;
-				dataArray = newDataArray;
+				else {
+					float[] newDataArray = new float[dataArray.length + 1];
+					for (int i = 0; i < dataArray.length; i++) {
+						newDataArray[i] = dataArray[i];
+					}
+					newDataArray[dataArray.length] = mHTSValue;
+					dataArray = newDataArray;
+				}
 			}
 			setData(dataArray);
 			mChart.invalidate();
+		}
+		if (mHRValue > 0) {
+			if (HRArray == null) {
+				HRArray = new int[1];
+				HRArray[0] = mHRValue;
+			}
+			else {
+				if ((HRArray.length + 1) > maxDatasize) {
+					HRArray = new int[1];
+					HRArray[0] = mHRValue;
+				}
+				else {
+					int[] newDataArray = new int[HRArray.length + 1];
+					for (int i = 0; i < HRArray.length; i++) {
+						newDataArray[i] = HRArray[i];
+					}
+					newDataArray[HRArray.length] = mHRValue;
+					HRArray = newDataArray;
+				}
+			}
 		}
 	}
 

@@ -24,14 +24,19 @@ package no.nordicsemi.android.nrftoolbox.hrs;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.LimitLine;
@@ -42,6 +47,14 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 
 import org.achartengine.GraphicalView;
+import org.eclipse.paho.android.service.MqttAndroidClient;
+import org.eclipse.paho.client.mqttv3.IMqttActionListener;
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.IMqttToken;
+import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -51,13 +64,14 @@ import no.nordicsemi.android.ble.BleManager;
 import no.nordicsemi.android.nrftoolbox.FeaturesActivity;
 import no.nordicsemi.android.nrftoolbox.R;
 import no.nordicsemi.android.nrftoolbox.profile.BleProfileActivity;
+import no.nordicsemi.android.nrftoolbox.template.TemplateActivity;
 
 /**
  * HRSActivity is the main Heart rate activity. It implements HRSManagerCallbacks to receive callbacks from HRSManager class. The activity supports portrait and landscape orientations. The activity
  * uses external library AChartEngine to show real time graph of HR values.
  */
 // TODO The HRSActivity should be rewritten to use the service approach, like other do.
-public class HRSActivity extends BleProfileActivity implements HRSManagerCallbacks {
+public class HRSActivity extends BleProfileActivity implements HRSManagerCallbacks, View.OnClickListener {
 	@SuppressWarnings("unused")
 	private final String TAG = "HRSActivity";
 
@@ -67,7 +81,7 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 
 	private final static int MAX_HR_VALUE = 65535;
 	private final static int MIN_POSITIVE_VALUE = 0;
-	private final static int REFRESH_INTERVAL = 2000; // 1 second interval
+	private final static int REFRESH_INTERVAL = 1000; // 1 second interval
 
 	private Handler mHandler = new Handler();
 
@@ -75,11 +89,39 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 
 	private TextView mHRSValue, mHRSPosition;
 
-	private int mHrmValue = 0;
+	private int    mHrmValue = 0;
+	private String mHrmPosition;
 	private int mCounter = 0;
 
+	final String HTS_KEY_COUNT = "HTS_COUNT";
+	final String HRS_KEY_COUNT = "HRS_COUNT";
+	final String HTS_KEY_VAL_PREFIX = "HTS_VAL_";
+	final String HRS_KEY_VAL_PREFIX = "HRS_VAL_";
 	private LineChart mChart;
 	int[] dataArray;
+	float[] HTArray;
+	int maxDatasize = 2592000; /* 30 days */
+
+	// Save state
+	String PreferenceKey = "SavedKey";
+
+	private String mqttEventTopic   = "iot-2/evt/status/fmt/json";
+	private int    mqttKeepAlive    = 10;                          /* in sec */
+
+	private String mqttHostName;
+	private String mqttClientID;
+	private String mqttDeviceName;
+	private String mqttAuthMethod;
+	private String mqttAuthToken;
+
+	private static MqttAndroidClient  mqttClient  = null;
+	private static MqttConnectOptions mqttOptions = null;
+	private static CountDownTimer     publishTimer;
+
+	private boolean isUploading = false;
+
+	Button uploadDataButton;
+//	Button connectServerButton;
 
 	@Override
 	protected void onCreateView(final Bundle savedInstanceState) {
@@ -87,7 +129,241 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		//connectServerButton = findViewById(R.id.action_mqtt_connect);
+		uploadDataButton    = findViewById(R.id.action_upload);
+
+		SharedPreferences prefs  = getSharedPreferences(PreferenceKey, MODE_PRIVATE);
+		mqttDeviceName = prefs.getString("SAVE_INPUT_DEVICE_NAME", null);
+		mqttAuthMethod = prefs.getString("SAVE_INPUT_AUTH_METHOD", null);
+		mqttAuthToken  = prefs.getString("SAVE_INPUT_AUTH_TOKEN", null);
+		mqttHostName   = prefs.getString("SAVE_MQTT_HOST", null);
+		mqttClientID   = prefs.getString("SAVE_CLIENT_ID", null);
+
+		boolean redrawGraph = false;
+		int savedDataSize = prefs.getInt(HRS_KEY_COUNT, 0);
+		if (savedDataSize > 0) {
+			redrawGraph = true;
+		}
+
+		if (checkMQTTConnectStatus()) {
+			//connectServerButton.setText(R.string.action_mqtt_disconnect);
+			isUploading = prefs.getBoolean("SAVE_UPLOADING_STATE", false);
+			if (isUploading) {
+				uploadDataButton.setText(R.string.action_uploading);
+			}
+			else {
+				uploadDataButton.setText(R.string.action_uploading);
+			}
+		}
+		else {
+			//connectServerButton.setText(R.string.action_mqtt_connect);
+			uploadDataButton.setText(R.string.action_upload);
+		}
+
+		//connectServerButton.setOnClickListener(this);
+		uploadDataButton.setOnClickListener(this);
+
 		setGUI();
+		if (redrawGraph) {
+			dataArray = new int[savedDataSize];
+			for (int i = 0; i < savedDataSize; i++) {
+				dataArray[i] = prefs.getInt(HRS_KEY_VAL_PREFIX + i, 0);
+			}
+			updateGraph(dataArray);
+			mChart.invalidate();
+		}
+	}
+
+	private boolean checkMQTTConnectStatus() {
+		if (mqttClient == null) {
+			return false;
+		}
+		else if (!mqttClient.isConnected()) {
+			return false;
+		}
+		return true;
+	}
+
+	private void createMQTTClient() {
+		mqttClient = new MqttAndroidClient(this.getApplicationContext(), mqttHostName, mqttClientID);
+		mqttOptions = new MqttConnectOptions();
+
+		mqttOptions.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1);
+		mqttOptions.setUserName(mqttAuthMethod);
+		mqttOptions.setPassword(mqttAuthToken.toCharArray());
+		mqttOptions.setKeepAliveInterval(mqttKeepAlive);
+	}
+
+	private void setSubcribeCallback() {
+		mqttClient.setCallback(new MqttCallback() {
+			@Override
+			public void connectionLost(Throwable cause) {
+				Toast.makeText(HRSActivity.this, "Connection Lost!", Toast.LENGTH_LONG).show();
+			}
+
+			@Override
+			public void messageArrived(String topic, MqttMessage message) throws Exception {
+
+			}
+
+			@Override
+			public void deliveryComplete(IMqttDeliveryToken token) {
+
+			}
+		});
+	}
+
+	private void mqttConnect() {
+		try {
+			IMqttToken MQTTToken = mqttClient.connect(mqttOptions);
+			MQTTToken.setActionCallback(new IMqttActionListener() {
+				@Override
+				public void onSuccess(IMqttToken asyncActionToken) {
+					String payload = "{" + "\"Client ID\":" + "\"" + mqttClientID + "\"" + "}";
+					//connectServerButton.setText(R.string.action_mqtt_disconnect);
+					mqttPublish(payload);
+					Toast.makeText(HRSActivity.this, "Đã kết nối với server", Toast.LENGTH_LONG).show();
+					uploadClicked();
+				}
+
+				@Override
+				public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+					Toast.makeText(HRSActivity.this, "Kết nối thất bại", Toast.LENGTH_LONG).show();
+				}
+			});
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void mqttDisconnect() {
+		try {
+			IMqttToken disconToken = mqttClient.disconnect();
+			disconToken.setActionCallback(new IMqttActionListener() {
+				@Override
+				public void onSuccess(IMqttToken asyncActionToken) {
+					//connectServerButton.setText(R.string.action_mqtt_connect);
+					Toast.makeText( HRSActivity.this, "Đã ngắt kết nối với server", Toast.LENGTH_LONG).show();
+				}
+
+				@Override
+				public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+
+				}
+			});
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	private void mqttPublish(String payload) {
+		try {
+			mqttClient.publish(mqttEventTopic, payload.getBytes(), 0, false);
+		} catch (MqttException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private boolean checkValidInfo() {
+		if (mqttDeviceName.equals("")) {
+			return false;
+		}
+		if (mqttAuthMethod.equals("")) {
+			return false;
+		}
+		if (mqttAuthToken.equals("")) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	public void onClick(View v) {
+		if (v.getId() == R.id.action_upload) {
+			if (!checkValidInfo()) {
+				Toast.makeText(this, "Vui lòng điền đẩy đủ cấu hình mạng", Toast.LENGTH_LONG).show();
+			}
+			else {
+				if (checkMQTTConnectStatus()) {
+					/* Stop uploading first then disconnect with the broker */
+					uploadClicked();
+					if (!isUploading) {
+						serverConnectClicked(v);
+					}
+				}
+				else {
+					/* Connect to the MQTT broker then start uploading */
+					serverConnectClicked(v);
+				}
+			}
+		}
+	}
+
+	void serverConnectClicked(final View view) {
+		// Connect to server
+		if (!checkMQTTConnectStatus()) {
+			createMQTTClient();
+			mqttConnect();
+		}
+		else {
+			if (isUploading) {
+				Toast.makeText(this, "Stop uploading", Toast.LENGTH_LONG).show();
+			}
+			else {
+				mqttDisconnect();
+			}
+		}
+	}
+
+	void uploadClicked() {
+		// Start uploading
+		if (checkMQTTConnectStatus()) {
+			if (!isUploading) {
+				isUploading  = true;
+				uploadDataButton.setText(R.string.action_uploading);
+				String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(7000) + "}}";
+				mqttPublish(timePayload);
+				Toast.makeText(HRSActivity.this, "Bắt đầu gửi dữ liệu", Toast.LENGTH_LONG).show();
+				publishTimer = new CountDownTimer(11000, 1000) {
+					@Override
+					public void onTick(long millisUntilFinished) {
+					}
+
+					@Override
+					public void onFinish() {
+//						String SensorValues = "{\"d\":{" + "\"Heart Rate value\":" + String.valueOf(mHRValue) + ","
+//								+ "\"Body temperature\":" + String.valueOf(mHTSValue) + "}}";
+						String SensorValues = "{\"d\":{" + "\"Heart Rate value\":" + String.valueOf(mHrmValue) + "}}";
+						mqttPublish(SensorValues);
+						publishTimer.start();
+					}
+				}.start();
+			}
+			else {
+				publishTimer.cancel();
+				isUploading = false;
+				String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(8000) + "}}";
+				mqttPublish(timePayload);
+				Toast.makeText(HRSActivity.this, "Ngưng gửi dữ liệu", Toast.LENGTH_LONG).show();
+				uploadDataButton.setText(R.string.action_upload);
+			}
+		}
+	}
+
+	private void SaveUploadState() {
+		SharedPreferences.Editor editor = getSharedPreferences(PreferenceKey, MODE_PRIVATE).edit();
+		editor.putBoolean("SAVE_UPLOADING_STATE", isUploading);
+		int dataSize;
+		if (dataArray != null) {
+			dataSize = dataArray.length;
+			editor.putInt(HRS_KEY_COUNT, dataSize);
+			for (int i = 0; i < dataSize; i++) {
+				editor.putInt(HRS_KEY_VAL_PREFIX + i, dataArray[i]);
+			}
+		}
+
+		editor.apply();
 	}
 
 	private void setGUI() {
@@ -178,7 +454,7 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-
+		SaveUploadState();
 		stopShowGraph();
 	}
 
@@ -293,6 +569,7 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 		runOnUiThread(() -> {
 			if (position != null) {
 				mHRSPosition.setText(position);
+				mHrmPosition = position;
 			} else {
 				mHRSPosition.setText(R.string.not_available);
 			}
