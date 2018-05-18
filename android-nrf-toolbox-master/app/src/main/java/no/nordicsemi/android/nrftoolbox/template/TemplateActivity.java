@@ -98,8 +98,14 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	private TextView mValueView, mRHTSType;
 	private TextView mValueUnitView;
 
+	final String HTS_KEY_COUNT = "HTS_COUNT";
+	final String HRS_KEY_COUNT = "HRS_COUNT";
+	final String HTS_KEY_VAL_PREFIX = "HTS_VAL_";
+	final String HRS_KEY_VAL_PREFIX = "HRS_VAL_";
 	private LineChart mChart;
 	float[] dataArray;
+	int[]   HRArray;
+	int maxDatasize = 2592000/2; /* 15 days */
 
 	// Save state
 	String PreferenceKey = "SavedKey";
@@ -139,6 +145,12 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		mqttHostName   = prefs.getString("SAVE_MQTT_HOST", null);
 		mqttClientID   = prefs.getString("SAVE_CLIENT_ID", null);
 
+		boolean redrawGraph = false;
+		int savedDataSize = prefs.getInt(HTS_KEY_COUNT, 0);
+		if (savedDataSize > 0) {
+			redrawGraph = true;
+		}
+
         if (checkMQTTConnectStatus()) {
             //connectServerButton.setText(R.string.action_mqtt_disconnect);
             isUploading = prefs.getBoolean("SAVE_UPLOADING_STATE", false);
@@ -159,6 +171,14 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 
 		setGUI();
 		startShowGraph();
+		if (redrawGraph) {
+			dataArray = new float[savedDataSize];
+			for (int i = 0; i < savedDataSize; i++) {
+				dataArray[i] = prefs.getFloat(HTS_KEY_VAL_PREFIX + i, 0);
+			}
+			setData(dataArray);
+			mChart.invalidate();
+		}
 	}
 
 	private boolean checkMQTTConnectStatus() {
@@ -340,6 +360,23 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	private void SaveUploadState() {
 		SharedPreferences.Editor editor = getSharedPreferences(PreferenceKey, MODE_PRIVATE).edit();
 		editor.putBoolean("SAVE_UPLOADING_STATE", isUploading);
+		int dataSize;
+		if (dataArray != null) {
+			dataSize = dataArray.length;
+			editor.putInt(HTS_KEY_COUNT, dataSize);
+			for (int i = 0; i < dataSize; i++) {
+				editor.putFloat(HTS_KEY_VAL_PREFIX + i, dataArray[i]);
+			}
+		}
+
+		if (HRArray != null) {
+			dataSize = HRArray.length;
+			editor.putInt(HRS_KEY_COUNT, dataSize);
+			for (int i = 0; i < dataSize; i++) {
+				editor.putInt(HRS_KEY_VAL_PREFIX + i, HRArray[i]);
+			}
+		}
+
 		editor.apply();
 	}
 
@@ -562,15 +599,41 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 				dataArray[0] = mHTSValue;
 			}
 			else {
-				float[] newDataArray = new float[dataArray.length + 1];
-				for (int i = 0; i < dataArray.length; i++) {
-					newDataArray[i] = dataArray[i];
+				if ((dataArray.length + 1) > maxDatasize) {
+					dataArray = new float[1];
+					dataArray[0] = mHTSValue;
 				}
-				newDataArray[dataArray.length] = mHTSValue;
-				dataArray = newDataArray;
+				else {
+					float[] newDataArray = new float[dataArray.length + 1];
+					for (int i = 0; i < dataArray.length; i++) {
+						newDataArray[i] = dataArray[i];
+					}
+					newDataArray[dataArray.length] = mHTSValue;
+					dataArray = newDataArray;
+				}
 			}
 			setData(dataArray);
 			mChart.invalidate();
+		}
+		if (mHRValue > 0) {
+			if (HRArray == null) {
+				HRArray = new int[1];
+				HRArray[0] = mHRValue;
+			}
+			else {
+				if ((HRArray.length + 1) > maxDatasize) {
+					HRArray = new int[1];
+					HRArray[0] = mHRValue;
+				}
+				else {
+					int[] newDataArray = new int[HRArray.length + 1];
+					for (int i = 0; i < HRArray.length; i++) {
+						newDataArray[i] = HRArray[i];
+					}
+					newDataArray[HRArray.length] = mHRValue;
+					HRArray = newDataArray;
+				}
+			}
 		}
 	}
 

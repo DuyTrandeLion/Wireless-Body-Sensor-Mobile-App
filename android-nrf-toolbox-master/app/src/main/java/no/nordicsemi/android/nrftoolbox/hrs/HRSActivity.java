@@ -93,8 +93,14 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 	private String mHrmPosition;
 	private int mCounter = 0;
 
+	final String HTS_KEY_COUNT = "HTS_COUNT";
+	final String HRS_KEY_COUNT = "HRS_COUNT";
+	final String HTS_KEY_VAL_PREFIX = "HTS_VAL_";
+	final String HRS_KEY_VAL_PREFIX = "HRS_VAL_";
 	private LineChart mChart;
 	int[] dataArray;
+	float[] HTArray;
+	int maxDatasize = 2592000; /* 30 days */
 
 	// Save state
 	String PreferenceKey = "SavedKey";
@@ -133,6 +139,12 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 		mqttHostName   = prefs.getString("SAVE_MQTT_HOST", null);
 		mqttClientID   = prefs.getString("SAVE_CLIENT_ID", null);
 
+		boolean redrawGraph = false;
+		int savedDataSize = prefs.getInt(HRS_KEY_COUNT, 0);
+		if (savedDataSize > 0) {
+			redrawGraph = true;
+		}
+
 		if (checkMQTTConnectStatus()) {
 			//connectServerButton.setText(R.string.action_mqtt_disconnect);
 			isUploading = prefs.getBoolean("SAVE_UPLOADING_STATE", false);
@@ -152,6 +164,14 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 		uploadDataButton.setOnClickListener(this);
 
 		setGUI();
+		if (redrawGraph) {
+			dataArray = new int[savedDataSize];
+			for (int i = 0; i < savedDataSize; i++) {
+				dataArray[i] = prefs.getInt(HRS_KEY_VAL_PREFIX + i, 0);
+			}
+			updateGraph(dataArray);
+			mChart.invalidate();
+		}
 	}
 
 	private boolean checkMQTTConnectStatus() {
@@ -334,6 +354,15 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 	private void SaveUploadState() {
 		SharedPreferences.Editor editor = getSharedPreferences(PreferenceKey, MODE_PRIVATE).edit();
 		editor.putBoolean("SAVE_UPLOADING_STATE", isUploading);
+		int dataSize;
+		if (dataArray != null) {
+			dataSize = dataArray.length;
+			editor.putInt(HRS_KEY_COUNT, dataSize);
+			for (int i = 0; i < dataSize; i++) {
+				editor.putInt(HRS_KEY_VAL_PREFIX + i, dataArray[i]);
+			}
+		}
+
 		editor.apply();
 	}
 
@@ -425,7 +454,7 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-
+		SaveUploadState();
 		stopShowGraph();
 	}
 
