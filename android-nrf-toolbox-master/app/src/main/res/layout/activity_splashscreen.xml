@@ -38,6 +38,7 @@
 		android:layout_height="wrap_content"
 		android:layout_gravity="bottom|center"
 		android:layout_marginBottom="6dp"
-		android:src="@drawable/background_title"/>
+		android:src="@drawable/background_title"
+		android:visibility="gone"/>
 
 </merge>
