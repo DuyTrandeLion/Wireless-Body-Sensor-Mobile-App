@@ -26,6 +26,7 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.content.Context;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.UUID;
@@ -176,7 +177,9 @@ public class TemplateManager extends BleManager<TemplateManagerCallbacks> {
 		protected void onCharacteristicWrite(final BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic) {
 			// TODO this method is called when the characteristic has been written
 			// This method may be removed from this class if not required
-
+			byte newType = 3;
+			Logger.a(mLogSession, "\"" + TemperatureTypeParser.parse(characteristic) + "\" sent");
+			mCallbacks.onCharacteristicValueWritten(gatt.getDevice(), newType);
 		}
 
 
@@ -184,14 +187,23 @@ public class TemplateManager extends BleManager<TemplateManagerCallbacks> {
 
 	/**
 	 * Sends the new temperature type to Temperature Type characteristic.
-	 * @param newPosition the position to be sent
+	 * @param value the position to be sent
 	 */
-	public void sendNewPosition(final byte newPosition) {
+	public void sendNewCharacteristicValue(final byte value) {
 		/* Are we connected? */
 		if (mRHTSTypeCharacteristic == null)
 			return;
 
+		final byte buffer[] = {value};
+		int mBufferOffset;
 
+		// Depending on whether the characteristic has the WRITE REQUEST property or not
+		final boolean writeRequest = (mRHTSTypeCharacteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE) > 0;
+
+		if (writeRequest) {
+			mBufferOffset = buffer.length;
+			enqueue(Request.newWriteRequest(mRHTSTypeCharacteristic, buffer, 0, mBufferOffset));
+		}
 	}
 
 	/**

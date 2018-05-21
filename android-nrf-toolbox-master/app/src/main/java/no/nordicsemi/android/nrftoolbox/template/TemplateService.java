@@ -42,12 +42,14 @@ import no.nordicsemi.android.nrftoolbox.profile.BleProfileService;
 
 public class TemplateService extends BleProfileService implements TemplateManagerCallbacks {
 	public static final String BROADCAST_RHTS_MEASUREMENT = "no.nordicsemi.android.nrftoolbox.rhts.BROADCAST_RHTS_MEASUREMENT";
+	public static final String BROADCASE_RHTS_TYPE = "no.nordicsemi.android.nrftoolbox.rhts.BROADCAST_RHTS_TYPE";
 	public static final String EXTRA_DATA = "no.nordicsemi.android.nrftoolbox.template.EXTRA_DATA";
 	public static final String EXTRA_HEART_RATE_DATA = "no.nordicsemi.android.nrftoolbox.template.EXTRA_HEART_RATE_DATA";
+	public static final String EXTRA_CHARACTERISTC_DATA = "no.nordicsemi.android.nrftoolbox.template.EXTRA_CHARACTERISTC_DATA";
+
 
 	public static String displayTemperatureType;
 	public static byte   currentTypeValue;
-	public static byte   newPositionValue;
 
 	private final static String ACTION_DISCONNECT = "no.nordicsemi.android.nrftoolbox.template.ACTION_DISCONNECT";
 
@@ -71,9 +73,9 @@ public class TemplateService extends BleProfileService implements TemplateManage
 		//     mManager.setLights(on);
 		// }
 
-		public void setNewTemperatureType(final byte newPosition) {
-			Logger.v(getLogSession(), "New position set to: " + newPosition);
-			mManager.sendNewPosition(newPosition);
+		public void sendNewCharacteristicValue(final byte value) {
+			Logger.v(getLogSession(), "New data set to: " + value);
+			mManager.sendNewCharacteristicValue(value);
 		}
 	}
 
@@ -137,10 +139,18 @@ public class TemplateService extends BleProfileService implements TemplateManage
 		currentTypeValue       = intType;
 	}
 
-//	@Override
-//	public byte onCharacteristicValueWritten(final BluetoothDevice device) {
-//		return newPositionValue;
-//	}
+	@Override
+	public void onCharacteristicValueWritten(final BluetoothDevice device, byte value) {
+		final Intent broadcast = new Intent(BROADCASE_RHTS_TYPE);
+		broadcast.putExtra(EXTRA_DEVICE, getBluetoothDevice());
+		broadcast.putExtra(EXTRA_CHARACTERISTC_DATA, value);
+		LocalBroadcastManager.getInstance(this).sendBroadcast(broadcast);
+
+		if (!mBinded) {
+			// Here we may update the notification to display the current value.
+			// TODO modify the notification here
+		}
+	}
 
 	/**
 	 * Creates the notification

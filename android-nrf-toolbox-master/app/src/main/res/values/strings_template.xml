@@ -40,15 +40,40 @@
 	<string name="template_notification_action_disconnect">Disconnect</string>
 	<string name="template_notification_connected_message">%s is connected.</string>
 	<string name="template_type_label">Vị trí</string>
+	<string name="template_settings_type_summary">%s</string>
 	<string name="template_settings_units_title">Đơn vị</string>
 	<string name="template_settings_units_summary">%s</string>
 	<string-array name="template_settings_units">
 		<item>Celsius</item>
 		<item>Fahrenheit</item>
 	</string-array>
+	<string-array name="template_settings_type">
+		<item>Unknown  </item>
+		<item>Armpit   </item>
+		<item>Body     </item>
+		<item>Ear      </item>
+		<item>Finger   </item>
+		<item>GIT      </item>
+		<item>Mouth    </item>
+		<item>Rectum   </item>
+		<item>Toe      </item>
+		<item>Tympanum </item>
+	</string-array>
 	<string-array name="template_settings_units_values">
 		<item>0</item>
 		<item>1</item>
+	</string-array>
+	<string-array name="template_settings_type_values">
+		<item>0</item>
+		<item>1</item>
+		<item>2</item>
+		<item>3</item>
+		<item>4</item>
+		<item>5</item>
+		<item>6</item>
+		<item>7</item>
+		<item>8</item>
+		<item>9</item>
 	</string-array>
 	<string-array name="rhts_locations">
 		<item>Unknown  \u0020 \u0020</item>

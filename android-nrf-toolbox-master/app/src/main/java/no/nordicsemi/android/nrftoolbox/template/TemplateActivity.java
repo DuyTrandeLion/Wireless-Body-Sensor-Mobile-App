@@ -88,6 +88,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	private final static int REFRESH_INTERVAL = 1000; // 1 second interval
 
 	private Handler mHandler = new Handler();
+	TemplateService.TemplateBinder mServiceBinder;
 
 	private boolean isGraphInProgress = false;
 
@@ -371,8 +372,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		else {
 			mHTSType++;
 		}
-		TemplateService.newPositionValue = mHTSType;
-		int a = 8;
+		mServiceBinder.sendNewCharacteristicValue(mHTSType);
 	}
 
 	private void SaveUploadState() {
@@ -533,11 +533,13 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	@Override
 	protected void onServiceBinded(final TemplateService.TemplateBinder binder) {
 		// not used
+		mServiceBinder = binder;
 	}
 
 	@Override
 	protected void onServiceUnbinded() {
 		// not used
+		mServiceBinder = null;
 	}
 
 	@Override
@@ -604,6 +606,8 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 				break;
 			case SettingsFragment.SETTINGS_VARIANT_F:
 				displayValue = value * (float)1.8 + (float)32.0;
+				float temp1 = displayValue * 100;
+				displayValue = (int)temp1/(float)100.0;
 				break;
 			default: break;
 		}

@@ -19,42 +19,25 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package no.nordicsemi.android.nrftoolbox.template;
 
-import android.bluetooth.BluetoothDevice;
+package no.nordicsemi.android.nrftoolbox.hrs.settings;
 
-import no.nordicsemi.android.ble.BleManagerCallbacks;
+import android.os.Bundle;
+import android.preference.PreferenceFragment;
 
-/**
- * Interface {@link TemplateManagerCallbacks} must be implemented by {@link TemplateActivity} in order to receive callbacks from {@link TemplateManager}
- */
-public interface TemplateManagerCallbacks extends BleManagerCallbacks {
+import no.nordicsemi.android.nrftoolbox.R;
 
-	// TODO add more callbacks. Callbacks are called when a data has been received/written to a remote device. This is the way how the manager notifies the activity about this event.
+public class SettingsFragment extends PreferenceFragment {
+	public static final String SETTINGS_TEMP_UNIT = "settings_template_data";
+	// TODO values matching those in settings_template.xml file in /res/xml
+	public static final int SETTINGS_VARIANT_C = 0;
+	public static final int SETTINGS_VARIANT_F = 1;
+	public static final int SETTINGS_VARIANT_DEFAULT = SETTINGS_VARIANT_C;
 
-	/**
-	 * Called when the sensor position information has been obtained from the sensor
-	 *
-	 * @param device  the bluetooth device from which the value was obtained
-	 * @param type
-	 *            the sensor position
-	 */
-	void onRHTSTemperatureTypeFound(final BluetoothDevice device, String type, byte intType);
+	@Override
+	public void onCreate(final Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
 
-	/**
-	 * Called when a value is received.
-	 *
-	 * @param device a device from which the value was obtained
-	 * @param value the new value
-	 */
-	void onSampleValueReceived(final BluetoothDevice device, float value, int extraHR);
-
-	/**
-	 * Called when a characteristic value is written.
-	 *
-	 * @param device a device from which the value was obtained
-	 * @param value
-	 */
-	void onCharacteristicValueWritten(final BluetoothDevice device, byte value);
-
+		addPreferencesFromResource(R.xml.settings_template);
+	}
 }

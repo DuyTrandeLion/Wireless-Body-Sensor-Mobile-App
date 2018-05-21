@@ -31,4 +31,12 @@
 		android:entryValues="@array/template_settings_units_values"
 		android:key="settings_template_data" />
 
+	<ListPreference
+		android:title="@string/template_type_label"
+		android:summary="@string/template_settings_type_summary"
+		android:defaultValue="0"
+		android:entries="@array/template_settings_type"
+		android:entryValues="@array/template_settings_type_values"
+		android:key="settings_template_data" />
+
 </PreferenceScreen>

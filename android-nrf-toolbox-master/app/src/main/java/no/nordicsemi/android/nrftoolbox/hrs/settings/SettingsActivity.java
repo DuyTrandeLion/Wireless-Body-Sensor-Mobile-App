@@ -19,42 +19,38 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package no.nordicsemi.android.nrftoolbox.template;
 
-import android.bluetooth.BluetoothDevice;
+package no.nordicsemi.android.nrftoolbox.hrs.settings;
 
-import no.nordicsemi.android.ble.BleManagerCallbacks;
+import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 
-/**
- * Interface {@link TemplateManagerCallbacks} must be implemented by {@link TemplateActivity} in order to receive callbacks from {@link TemplateManager}
- */
-public interface TemplateManagerCallbacks extends BleManagerCallbacks {
+import no.nordicsemi.android.nrftoolbox.R;
 
-	// TODO add more callbacks. Callbacks are called when a data has been received/written to a remote device. This is the way how the manager notifies the activity about this event.
+public class SettingsActivity extends AppCompatActivity {
 
-	/**
-	 * Called when the sensor position information has been obtained from the sensor
-	 *
-	 * @param device  the bluetooth device from which the value was obtained
-	 * @param type
-	 *            the sensor position
-	 */
-	void onRHTSTemperatureTypeFound(final BluetoothDevice device, String type, byte intType);
+	@Override
+	protected void onCreate(final Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_settings);
 
-	/**
-	 * Called when a value is received.
-	 *
-	 * @param device a device from which the value was obtained
-	 * @param value the new value
-	 */
-	void onSampleValueReceived(final BluetoothDevice device, float value, int extraHR);
+        final Toolbar toolbar  = findViewById(R.id.toolbar_actionbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-	/**
-	 * Called when a characteristic value is written.
-	 *
-	 * @param device a device from which the value was obtained
-	 * @param value
-	 */
-	void onCharacteristicValueWritten(final BluetoothDevice device, byte value);
+		// Display the fragment as the main content.
+		getFragmentManager().beginTransaction().replace(R.id.content, new SettingsFragment()).commit();
+	}
 
+	@Override
+	public boolean onOptionsItemSelected(final MenuItem item) {
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			onBackPressed();
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
 }
