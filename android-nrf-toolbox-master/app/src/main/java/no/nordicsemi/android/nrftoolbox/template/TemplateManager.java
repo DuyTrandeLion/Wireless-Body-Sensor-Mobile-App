@@ -49,6 +49,8 @@ public class TemplateManager extends BleManager<TemplateManagerCallbacks> {
 	private final static int GET_BIT24 = 0x00400000;
 	private final static int FIRST_BIT_MASK = 0x01;
 
+	public byte gWriteCharateristicValue;
+
 	/** The service UUID */
 	public final static UUID SERVICE_UUID = UUID.fromString("00001809-0000-1000-8000-00805f9b34fb"); // TODO change the UUID to your match your service
 	/** The characteristic UUID */
@@ -157,8 +159,9 @@ public class TemplateManager extends BleManager<TemplateManagerCallbacks> {
 			// This method may be removed from this class if not required
 			Logger.a(mLogSession, "\"" + TemperatureTypeParser.parse(characteristic) + "\" received");
 			final String temperatureType = getBodyTemperatureType(characteristic.getValue()[0]);
-			mCallbacks.onRHTSTemperatureTypeFound(gatt.getDevice(), temperatureType);
+			mCallbacks.onRHTSTemperatureTypeFound(gatt.getDevice(), temperatureType, characteristic.getValue()[0]);
 		}
+
 		/**
 		 * This method will decode and return Heart rate sensor position on body
 		 */
@@ -173,8 +176,23 @@ public class TemplateManager extends BleManager<TemplateManagerCallbacks> {
 		protected void onCharacteristicWrite(final BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic) {
 			// TODO this method is called when the characteristic has been written
 			// This method may be removed from this class if not required
+
 		}
+
+
 	};
+
+	/**
+	 * Sends the new temperature type to Temperature Type characteristic.
+	 * @param newPosition the position to be sent
+	 */
+	public void sendNewPosition(final byte newPosition) {
+		/* Are we connected? */
+		if (mRHTSTypeCharacteristic == null)
+			return;
+
+
+	}
 
 	/**
 	 * This method decode temperature value received from Health Thermometer device First byte {0} of data is flag and first bit of flag shows unit information of temperature. if bit 0 has value 1

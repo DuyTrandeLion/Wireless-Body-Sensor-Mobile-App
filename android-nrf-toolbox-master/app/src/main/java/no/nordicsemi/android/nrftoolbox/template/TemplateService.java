@@ -46,6 +46,9 @@ public class TemplateService extends BleProfileService implements TemplateManage
 	public static final String EXTRA_HEART_RATE_DATA = "no.nordicsemi.android.nrftoolbox.template.EXTRA_HEART_RATE_DATA";
 
 	public static String displayTemperatureType;
+	public static byte   currentTypeValue;
+	public static byte   newPositionValue;
+
 	private final static String ACTION_DISCONNECT = "no.nordicsemi.android.nrftoolbox.template.ACTION_DISCONNECT";
 
 	private final static int NOTIFICATION_ID = 864;
@@ -67,6 +70,11 @@ public class TemplateService extends BleProfileService implements TemplateManage
 		//     Logger.v(getLogSession(), "Light set to: " + on);
 		//     mManager.setLights(on);
 		// }
+
+		public void setNewTemperatureType(final byte newPosition) {
+			Logger.v(getLogSession(), "New position set to: " + newPosition);
+			mManager.sendNewPosition(newPosition);
+		}
 	}
 
 	@Override
@@ -124,9 +132,15 @@ public class TemplateService extends BleProfileService implements TemplateManage
 	}
 
 	@Override
-	public void onRHTSTemperatureTypeFound(final BluetoothDevice device, String position) {
-		displayTemperatureType = position;
+	public void onRHTSTemperatureTypeFound(final BluetoothDevice device, String type, byte intType) {
+		displayTemperatureType = type;
+		currentTypeValue       = intType;
 	}
+
+//	@Override
+//	public byte onCharacteristicValueWritten(final BluetoothDevice device) {
+//		return newPositionValue;
+//	}
 
 	/**
 	 * Creates the notification

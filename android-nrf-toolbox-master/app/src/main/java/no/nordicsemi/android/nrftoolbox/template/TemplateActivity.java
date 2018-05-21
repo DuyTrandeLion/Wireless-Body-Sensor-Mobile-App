@@ -93,6 +93,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 
 	float mHTSValue;
 	int   mHRValue;
+	byte  mHTSType;
 
 	// TODO change view references to match your need
 	private TextView mValueView, mRHTSType;
@@ -127,6 +128,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 
 	Button uploadDataButton;
 //	Button connectServerButton;
+	Button changeTypeButton;
 
 	@Override
 	protected void onCreateView(final Bundle savedInstanceState) {
@@ -137,6 +139,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 
 		//connectServerButton = findViewById(R.id.action_mqtt_connect);
 		uploadDataButton    = findViewById(R.id.action_upload);
+		changeTypeButton    = findViewById(R.id.action_change_type);
 
 		SharedPreferences prefs  = getSharedPreferences(PreferenceKey, MODE_PRIVATE);
 		mqttDeviceName = prefs.getString("SAVE_INPUT_DEVICE_NAME", null);
@@ -168,6 +171,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 
         //connectServerButton.setOnClickListener(this);
         uploadDataButton.setOnClickListener(this);
+		changeTypeButton.setOnClickListener(this);
 
 		setGUI();
 		startShowGraph();
@@ -305,6 +309,9 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 				}
 			}
 		}
+		else if (v.getId() == R.id.action_change_type) {
+			changeTypeClicked();
+		}
 	}
 
     void serverConnectClicked(final View view) {
@@ -356,6 +363,17 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
             }
         }
     }
+
+    void changeTypeClicked() {
+		if (mHTSType > 8) {
+			mHTSType = 0;
+		}
+		else {
+			mHTSType++;
+		}
+		TemplateService.newPositionValue = mHTSType;
+		int a = 8;
+	}
 
 	private void SaveUploadState() {
 		SharedPreferences.Editor editor = getSharedPreferences(PreferenceKey, MODE_PRIVATE).edit();
@@ -647,6 +665,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 				mHTSValue = value;
 				final int extraHR = intent.getIntExtra(TemplateService.EXTRA_HEART_RATE_DATA, 0);
 				mHRValue  = extraHR;
+				mHTSType  = TemplateService.currentTypeValue;
 				// Update GUI
 				setValueOnView(value, TemplateService.displayTemperatureType);
 			}
