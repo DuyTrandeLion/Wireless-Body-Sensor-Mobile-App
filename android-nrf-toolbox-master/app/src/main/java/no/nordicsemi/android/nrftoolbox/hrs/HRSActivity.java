@@ -31,6 +31,7 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -64,7 +65,7 @@ import no.nordicsemi.android.ble.BleManager;
 import no.nordicsemi.android.nrftoolbox.FeaturesActivity;
 import no.nordicsemi.android.nrftoolbox.R;
 import no.nordicsemi.android.nrftoolbox.profile.BleProfileActivity;
-import no.nordicsemi.android.nrftoolbox.template.TemplateActivity;
+import no.nordicsemi.android.nrftoolbox.hrs.settings.SettingsActivity;
 
 /**
  * HRSActivity is the main Heart rate activity. It implements HRSManagerCallbacks to receive callbacks from HRSManager class. The activity supports portrait and landscape orientations. The activity
@@ -122,6 +123,7 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 
 	Button uploadDataButton;
 //	Button connectServerButton;
+	Button changeTypeButton;
 
 	@Override
 	protected void onCreateView(final Bundle savedInstanceState) {
@@ -131,6 +133,7 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		//connectServerButton = findViewById(R.id.action_mqtt_connect);
 		uploadDataButton    = findViewById(R.id.action_upload);
+		changeTypeButton    = findViewById(R.id.action_change_type);
 
 		SharedPreferences prefs  = getSharedPreferences(PreferenceKey, MODE_PRIVATE);
 		mqttDeviceName = prefs.getString("SAVE_INPUT_DEVICE_NAME", null);
@@ -162,6 +165,7 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 
 		//connectServerButton.setOnClickListener(this);
 		uploadDataButton.setOnClickListener(this);
+		changeTypeButton.setOnClickListener(this);
 
 		setGUI();
 		if (redrawGraph) {
@@ -296,6 +300,15 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 					/* Connect to the MQTT broker then start uploading */
 					serverConnectClicked(v);
 				}
+			}
+		}
+		else if (v.getId() == R.id.action_change_type) {
+			if (checkValidInfo()) {
+				Toast.makeText(HRSActivity.this, "Thay đổi vị trí đo thành công", Toast.LENGTH_LONG).show();
+				HRSManager.sendNewCharacteristicValue((byte)0);
+			}
+			else {
+				Toast.makeText(HRSActivity.this, "Vui lòng kết nối với thiết bị", Toast.LENGTH_LONG).show();
 			}
 		}
 	}
@@ -469,6 +482,23 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 	}
 
 	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.settings_and_about, menu);
+		return true;
+	}
+
+	@Override
+	protected boolean onOptionsItemSelected(final int itemId) {
+		switch (itemId) {
+			case R.id.action_settings:
+				final Intent intent = new Intent(this, SettingsActivity.class);
+				startActivity(intent);
+				break;
+		}
+		return true;
+	}
+
+	@Override
 	protected int getDefaultDeviceName() {
 		return R.string.hrs_default_name;
 	}
@@ -587,8 +617,13 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 	}
 
 	@Override
-	public void onHRSensorPositionFound(final BluetoothDevice device, final String position) {
+	public void onHRSensorPositionFound(final BluetoothDevice device, final String position, final byte intPosition) {
 		setHRSPositionOnView(position);
+	}
+
+	@Override
+	public void onCharacteristicValueWritten(final BluetoothDevice device, String stringValue, byte value) {
+		setHRSPositionOnView(stringValue);
 	}
 
 	@Override

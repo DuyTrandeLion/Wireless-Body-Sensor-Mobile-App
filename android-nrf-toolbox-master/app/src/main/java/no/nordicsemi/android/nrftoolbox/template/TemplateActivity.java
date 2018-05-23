@@ -88,11 +88,15 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	private final static int REFRESH_INTERVAL = 1000; // 1 second interval
 
 	private Handler mHandler = new Handler();
+	TemplateService.TemplateBinder mServiceBinder;
 
 	private boolean isGraphInProgress = false;
 
 	float mHTSValue;
 	int   mHRValue;
+	byte  mHTSType;
+	byte  newmHTSType;
+	boolean sendNewType = false;
 
 	// TODO change view references to match your need
 	private TextView mValueView, mRHTSType;
@@ -105,7 +109,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	private LineChart mChart;
 	float[] dataArray;
 	int[]   HRArray;
-	int maxDatasize = 2592000/2; /* 15 days */
+	int maxDatasize = 2592000/4; /* 30/4 days */
 
 	// Save state
 	String PreferenceKey = "SavedKey";
@@ -127,6 +131,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 
 	Button uploadDataButton;
 //	Button connectServerButton;
+	Button changeTypeButton;
 
 	@Override
 	protected void onCreateView(final Bundle savedInstanceState) {
@@ -137,6 +142,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 
 		//connectServerButton = findViewById(R.id.action_mqtt_connect);
 		uploadDataButton    = findViewById(R.id.action_upload);
+		changeTypeButton    = findViewById(R.id.action_change_type);
 
 		SharedPreferences prefs  = getSharedPreferences(PreferenceKey, MODE_PRIVATE);
 		mqttDeviceName = prefs.getString("SAVE_INPUT_DEVICE_NAME", null);
@@ -168,6 +174,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 
         //connectServerButton.setOnClickListener(this);
         uploadDataButton.setOnClickListener(this);
+		changeTypeButton.setOnClickListener(this);
 
 		setGUI();
 		startShowGraph();
@@ -303,6 +310,15 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 					/* Connect to the MQTT broker then start uploading */
 					serverConnectClicked(v);
 				}
+			}
+		}
+		else if (v.getId() == R.id.action_change_type) {
+			if (checkValidInfo()) {
+				mServiceBinder.sendNewCharacteristicValue(newmHTSType);
+				Toast.makeText(TemplateActivity.this, "Cập nhật vị trí thành công!", Toast.LENGTH_LONG).show();
+			}
+			else {
+				Toast.makeText(TemplateActivity.this, "Vui lòng kết nối với thiết bị", Toast.LENGTH_LONG).show();
 			}
 		}
 	}
@@ -499,7 +515,8 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 
 	private void setUnits() {
 		final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-		final int unit = Integer.parseInt(preferences.getString(SettingsFragment.SETTINGS_TEMP_UNIT, String.valueOf(SettingsFragment.SETTINGS_VARIANT_DEFAULT)));
+		final int unit = Integer.parseInt(preferences.getString(SettingsFragment.SETTINGS_DATA_UNIT, String.valueOf(SettingsFragment.SETTINGS_VARIANT_DEFAULT)));
+		int type = Integer.parseInt(preferences.getString(SettingsFragment.SETTINGS_DATA_TYPE, String.valueOf(SettingsFragment.SETTINGS_TYPE_DEFAULT)));
 		UINT_ON_VIEW = unit;
 		switch (unit) {
 			case SettingsFragment.SETTINGS_VARIANT_C:
@@ -510,16 +527,23 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 				break;
 			default: break;
 		}
+
+		if ((byte)type != newmHTSType) {
+			newmHTSType = (byte)type;
+			sendNewType = true;
+		}
 	}
 
 	@Override
 	protected void onServiceBinded(final TemplateService.TemplateBinder binder) {
 		// not used
+		mServiceBinder = binder;
 	}
 
 	@Override
 	protected void onServiceUnbinded() {
 		// not used
+		mServiceBinder = null;
 	}
 
 	@Override
@@ -586,12 +610,15 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 				break;
 			case SettingsFragment.SETTINGS_VARIANT_F:
 				displayValue = value * (float)1.8 + (float)32.0;
+				float temp1 = displayValue * 100;
+				displayValue = (int)temp1/(float)100.0;
 				break;
 			default: break;
 		}
 
 		mValueView.setText(String.valueOf(displayValue));
 		mRHTSType.setText(String.valueOf(type));
+//		mRHTSType.setText(String.valueOf(newmHTSType));
 
 		if (mHTSValue > 0) {
 			if (dataArray == null) {
@@ -647,8 +674,17 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 				mHTSValue = value;
 				final int extraHR = intent.getIntExtra(TemplateService.EXTRA_HEART_RATE_DATA, 0);
 				mHRValue  = extraHR;
+//				mHTSType  = TemplateService.currentTypeValue;
+				String dispTemperatureType = intent.getStringExtra(TemplateService.EXTRA_CHARACTERISTC_STR);
+				mHTSType = intent.getByteExtra(TemplateService.EXTRA_CHARACTERISTC_DATA, (byte)0);
+
+				if (dispTemperatureType == null) {
+					dispTemperatureType = TemplateService.displayTemperatureType;
+					mHTSType            = TemplateService.currentTypeValue;
+				}
+
 				// Update GUI
-				setValueOnView(value, TemplateService.displayTemperatureType);
+				setValueOnView(value, dispTemperatureType);
 			}
 		}
 	};

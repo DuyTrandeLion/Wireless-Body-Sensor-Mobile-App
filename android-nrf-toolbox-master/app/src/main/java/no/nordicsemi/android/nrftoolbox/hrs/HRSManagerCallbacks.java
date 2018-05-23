@@ -34,7 +34,7 @@ public interface HRSManagerCallbacks extends BleManagerCallbacks {
 	 * @param position
 	 *            the sensor position
 	 */
-	void onHRSensorPositionFound(final BluetoothDevice device, String position);
+	void onHRSensorPositionFound(final BluetoothDevice device, String position, byte intPosition);
 
 	/**
 	 * Called when new Heart Rate value has been obtained from the sensor
@@ -44,4 +44,12 @@ public interface HRSManagerCallbacks extends BleManagerCallbacks {
 	 *            the new value
 	 */
 	void onHRValueReceived(final BluetoothDevice device, int value);
+
+	/**
+	 * Called when a characteristic value is written.
+	 *
+	 * @param device a device from which the value was obtained
+	 * @param value
+	 */
+	void onCharacteristicValueWritten(final BluetoothDevice device, String stringValue, byte value);
 }

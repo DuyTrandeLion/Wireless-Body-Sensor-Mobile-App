@@ -36,20 +36,25 @@ public interface TemplateManagerCallbacks extends BleManagerCallbacks {
 	 * Called when the sensor position information has been obtained from the sensor
 	 *
 	 * @param device  the bluetooth device from which the value was obtained
-	 * @param position
+	 * @param type
 	 *            the sensor position
 	 */
-	void onRHTSTemperatureTypeFound(final BluetoothDevice device, String position);
+	void onRHTSTemperatureTypeFound(final BluetoothDevice device, String type, byte intType);
 
 	/**
 	 * Called when a value is received.
 	 *
 	 * @param device a device from which the value was obtained
-	 * @param value
-	 *            the new value
+	 * @param value the new value
 	 */
 	void onSampleValueReceived(final BluetoothDevice device, float value, int extraHR);
 
-//	void onHeartRateValueParsed(final  BluetoothDevice device, int value);
+	/**
+	 * Called when a characteristic value is written.
+	 *
+	 * @param device a device from which the value was obtained
+	 * @param value
+	 */
+	void onCharacteristicValueWritten(final BluetoothDevice device, String stringValue, byte value);
 
 }

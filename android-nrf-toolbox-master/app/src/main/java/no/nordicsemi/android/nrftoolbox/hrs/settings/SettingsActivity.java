@@ -20,28 +20,37 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package no.nordicsemi.android.nrftoolbox.template.settings;
+package no.nordicsemi.android.nrftoolbox.hrs.settings;
 
 import android.os.Bundle;
-import android.preference.PreferenceFragment;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 
 import no.nordicsemi.android.nrftoolbox.R;
 
-public class SettingsFragment extends PreferenceFragment {
-	public static final String SETTINGS_DATA_UNIT = "settings_template_data";
-	// TODO values matching those in settings_template.xml file in /res/xml
-	public static final int SETTINGS_VARIANT_C = 0;
-	public static final int SETTINGS_VARIANT_F = 1;
-	public static final int SETTINGS_VARIANT_DEFAULT = SETTINGS_VARIANT_C;
-
-	public static final String SETTINGS_DATA_TYPE = "settings_template_type";
-	public static final int SETTINGS_VARIANT_UNKNOWN = 0;
-	public static final int SETTINGS_TYPE_DEFAULT = SETTINGS_VARIANT_UNKNOWN;
+public class SettingsActivity extends AppCompatActivity {
 
 	@Override
-	public void onCreate(final Bundle savedInstanceState) {
+	protected void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_settings);
 
-		addPreferencesFromResource(R.xml.settings_template);
+        final Toolbar toolbar  = findViewById(R.id.toolbar_actionbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+		// Display the fragment as the main content.
+		getFragmentManager().beginTransaction().replace(R.id.content, new SettingsFragment()).commit();
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(final MenuItem item) {
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			onBackPressed();
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
 	}
 }

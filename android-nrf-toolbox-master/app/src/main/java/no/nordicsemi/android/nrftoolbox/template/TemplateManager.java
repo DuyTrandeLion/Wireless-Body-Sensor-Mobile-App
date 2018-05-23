@@ -26,6 +26,7 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.content.Context;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.UUID;
@@ -48,6 +49,8 @@ public class TemplateManager extends BleManager<TemplateManagerCallbacks> {
 	private final static int SHIFT_LEFT_16BITS = 16;
 	private final static int GET_BIT24 = 0x00400000;
 	private final static int FIRST_BIT_MASK = 0x01;
+
+	public byte gWriteCharateristicValue;
 
 	/** The service UUID */
 	public final static UUID SERVICE_UUID = UUID.fromString("00001809-0000-1000-8000-00805f9b34fb"); // TODO change the UUID to your match your service
@@ -157,8 +160,9 @@ public class TemplateManager extends BleManager<TemplateManagerCallbacks> {
 			// This method may be removed from this class if not required
 			Logger.a(mLogSession, "\"" + TemperatureTypeParser.parse(characteristic) + "\" received");
 			final String temperatureType = getBodyTemperatureType(characteristic.getValue()[0]);
-			mCallbacks.onRHTSTemperatureTypeFound(gatt.getDevice(), temperatureType);
+			mCallbacks.onRHTSTemperatureTypeFound(gatt.getDevice(), temperatureType, characteristic.getValue()[0]);
 		}
+
 		/**
 		 * This method will decode and return Heart rate sensor position on body
 		 */
@@ -173,8 +177,34 @@ public class TemplateManager extends BleManager<TemplateManagerCallbacks> {
 		protected void onCharacteristicWrite(final BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic) {
 			// TODO this method is called when the characteristic has been written
 			// This method may be removed from this class if not required
+			Logger.a(mLogSession, "\"" + TemperatureTypeParser.parse(characteristic) + "\" written");
+			final String temperatureType = getBodyTemperatureType(characteristic.getValue()[0]);
+			mCallbacks.onCharacteristicValueWritten(gatt.getDevice(), temperatureType, characteristic.getValue()[0]);
 		}
+
+
 	};
+
+	/**
+	 * Sends the new temperature type to Temperature Type characteristic.
+	 * @param value the position to be sent
+	 */
+	public void sendNewCharacteristicValue(final byte value) {
+		/* Are we connected? */
+		if (mRHTSTypeCharacteristic == null)
+			return;
+
+		final byte buffer[] = {value};
+		int mBufferOffset;
+
+		// Depending on whether the characteristic has the WRITE REQUEST property or not
+		final boolean writeRequest = (mRHTSTypeCharacteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE) > 0;
+
+		if (writeRequest) {
+			mBufferOffset = buffer.length;
+			enqueue(Request.newWriteRequest(mRHTSTypeCharacteristic, buffer, 0, mBufferOffset));
+		}
+	}
 
 	/**
 	 * This method decode temperature value received from Health Thermometer device First byte {0} of data is flag and first bit of flag shows unit information of temperature. if bit 0 has value 1

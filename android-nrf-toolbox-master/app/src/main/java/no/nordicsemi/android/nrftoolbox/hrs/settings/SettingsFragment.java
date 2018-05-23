@@ -20,7 +20,7 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package no.nordicsemi.android.nrftoolbox.template.settings;
+package no.nordicsemi.android.nrftoolbox.hrs.settings;
 
 import android.os.Bundle;
 import android.preference.PreferenceFragment;
@@ -28,20 +28,15 @@ import android.preference.PreferenceFragment;
 import no.nordicsemi.android.nrftoolbox.R;
 
 public class SettingsFragment extends PreferenceFragment {
-	public static final String SETTINGS_DATA_UNIT = "settings_template_data";
+	public static final String SETTINGS_HRS_LOC = "settings_template_data";
 	// TODO values matching those in settings_template.xml file in /res/xml
-	public static final int SETTINGS_VARIANT_C = 0;
-	public static final int SETTINGS_VARIANT_F = 1;
-	public static final int SETTINGS_VARIANT_DEFAULT = SETTINGS_VARIANT_C;
-
-	public static final String SETTINGS_DATA_TYPE = "settings_template_type";
-	public static final int SETTINGS_VARIANT_UNKNOWN = 0;
-	public static final int SETTINGS_TYPE_DEFAULT = SETTINGS_VARIANT_UNKNOWN;
+	public static final int SETTINGS_VARIANT_OTHER = 0;
+	public static final int SETTINGS_VARIANT_DEFAULT = SETTINGS_VARIANT_OTHER;
 
 	@Override
 	public void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		addPreferencesFromResource(R.xml.settings_template);
+		addPreferencesFromResource(R.xml.settings_hrs);
 	}
 }

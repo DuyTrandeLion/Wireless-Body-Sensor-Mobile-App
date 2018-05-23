@@ -40,15 +40,40 @@
 	<string name="template_notification_action_disconnect">Disconnect</string>
 	<string name="template_notification_connected_message">%s is connected.</string>
 	<string name="template_type_label">Vị trí</string>
+	<string name="template_settings_type_summary">%s</string>
 	<string name="template_settings_units_title">Đơn vị</string>
 	<string name="template_settings_units_summary">%s</string>
 	<string-array name="template_settings_units">
 		<item>Celsius</item>
 		<item>Fahrenheit</item>
 	</string-array>
+	<string-array name="template_settings_type">
+		<item>Unknown  </item>
+		<item>Armpit   </item>
+		<item>Body     </item>
+		<item>Ear      </item>
+		<item>Finger   </item>
+		<item>GIT      </item>
+		<item>Mouth    </item>
+		<item>Rectum   </item>
+		<item>Toe      </item>
+		<item>Tympanum </item>
+	</string-array>
 	<string-array name="template_settings_units_values">
 		<item>0</item>
 		<item>1</item>
+	</string-array>
+	<string-array name="template_settings_type_values">
+		<item>0</item>
+		<item>1</item>
+		<item>2</item>
+		<item>3</item>
+		<item>4</item>
+		<item>5</item>
+		<item>6</item>
+		<item>7</item>
+		<item>8</item>
+		<item>9</item>
 	</string-array>
 	<string-array name="rhts_locations">
 		<item>Unknown  \u0020 \u0020</item>
@@ -56,7 +81,7 @@
 		<item>Body     \u0020 \u0020 \u0020 \u0020 \u0020</item>
 		<item>Ear      \u0020 \u0020 \u0020 \u0020 \u0020 \u0020</item>
 		<item>Finger   \u0020 \u0020 \u0020</item>
-		<item>Gastro-intestinal Tract \u0020</item>
+		<item>GIT      \u0020 \u0020 \u0020 \u0020 \u0020 \u0020</item>
 		<item>Mouth    \u0020 \u0020 \u0020 \u0020</item>
 		<item>Rectum   \u0020 \u0020 \u0020</item>
 		<item>Toe      \u0020 \u0020 \u0020 \u0020 \u0020 \u0020</item>
@@ -64,7 +89,5 @@
 	</string-array>
 	<string name="rhts_locations_other">Reserved</string>
 
-    <string name="template_about_text">This is an empty profile that may be easily adopted to match customer requirements.
-		The Bluetooth Smart connection is handled by the Manager in Template Service.
-		\n\nBy default this profile displays the Heart Rate value.</string>
+    <string name="template_about_text">Đọc nhiệt độ cơ thể nhận được từ cảm biến</string>
 </resources>
