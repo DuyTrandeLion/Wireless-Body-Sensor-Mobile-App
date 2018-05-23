@@ -149,6 +149,7 @@
 			android:layout_height="wrap_content"
 			android:layout_alignParentBottom="true"
 			android:layout_marginBottom="12dp"
+			android:layout_marginStart="13dp"
 			android:layout_toEndOf="@+id/trebuchetBoldTextView5"
 			android:onClick="onConnectClicked"
 			android:text="@string/action_connect" />
@@ -160,18 +161,20 @@
 			android:layout_height="wrap_content"
 			android:layout_alignParentEnd="true"
 			android:layout_below="@+id/chart1"
+			android:layout_marginEnd="13dp"
 			android:onClick="onUploadClicked"
 			android:text="@string/action_upload" />
 
 		<Button
 			android:id="@+id/action_change_type"
-			style="@style/Widget.Connect"
+			style="@style/Widget.Write"
 			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_below="@+id/chart1"
-			android:layout_toStartOf="@+id/action_upload"
+			android:layout_height="30dp"
+			android:layout_marginTop="55dp"
+			android:layout_marginLeft="5dp"
 			android:onClick="onChangeTypeClicked"
-			android:text="@string/action_change" />
+			android:text="@string/action_change"
+			android:textSize="10dp"/>
 
 
 		<ImageView

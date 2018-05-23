@@ -177,9 +177,9 @@ public class TemplateManager extends BleManager<TemplateManagerCallbacks> {
 		protected void onCharacteristicWrite(final BluetoothGatt gatt, final BluetoothGattCharacteristic characteristic) {
 			// TODO this method is called when the characteristic has been written
 			// This method may be removed from this class if not required
-			byte newType = 3;
-			Logger.a(mLogSession, "\"" + TemperatureTypeParser.parse(characteristic) + "\" sent");
-			mCallbacks.onCharacteristicValueWritten(gatt.getDevice(), newType);
+			Logger.a(mLogSession, "\"" + TemperatureTypeParser.parse(characteristic) + "\" written");
+			final String temperatureType = getBodyTemperatureType(characteristic.getValue()[0]);
+			mCallbacks.onCharacteristicValueWritten(gatt.getDevice(), temperatureType, characteristic.getValue()[0]);
 		}
 
 

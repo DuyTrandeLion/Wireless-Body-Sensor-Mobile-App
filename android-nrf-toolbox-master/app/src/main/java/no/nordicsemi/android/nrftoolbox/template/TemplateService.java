@@ -45,7 +45,9 @@ public class TemplateService extends BleProfileService implements TemplateManage
 	public static final String BROADCASE_RHTS_TYPE = "no.nordicsemi.android.nrftoolbox.rhts.BROADCAST_RHTS_TYPE";
 	public static final String EXTRA_DATA = "no.nordicsemi.android.nrftoolbox.template.EXTRA_DATA";
 	public static final String EXTRA_HEART_RATE_DATA = "no.nordicsemi.android.nrftoolbox.template.EXTRA_HEART_RATE_DATA";
+	public static final String EXTRA_CHARACTERISTC_STR = "no.nordicsemi.android.nrftoolbox.template.EXTRA_CHARACTERISTC_STR";
 	public static final String EXTRA_CHARACTERISTC_DATA = "no.nordicsemi.android.nrftoolbox.template.EXTRA_CHARACTERISTC_DATA";
+
 
 
 	public static String displayTemperatureType;
@@ -135,16 +137,31 @@ public class TemplateService extends BleProfileService implements TemplateManage
 
 	@Override
 	public void onRHTSTemperatureTypeFound(final BluetoothDevice device, String type, byte intType) {
+		final Intent broadcast = new Intent(BROADCASE_RHTS_TYPE);
+		broadcast.putExtra(EXTRA_DEVICE, getBluetoothDevice());
+		broadcast.putExtra(EXTRA_CHARACTERISTC_STR, type);
+		broadcast.putExtra(EXTRA_CHARACTERISTC_DATA, intType);
+		LocalBroadcastManager.getInstance(this).sendBroadcast(broadcast);
+
 		displayTemperatureType = type;
 		currentTypeValue       = intType;
+
+		if (!mBinded) {
+			// Here we may update the notification to display the current value.
+			// TODO modify the notification here
+		}
 	}
 
 	@Override
-	public void onCharacteristicValueWritten(final BluetoothDevice device, byte value) {
+	public void onCharacteristicValueWritten(final BluetoothDevice device, String stringValue, byte value) {
 		final Intent broadcast = new Intent(BROADCASE_RHTS_TYPE);
 		broadcast.putExtra(EXTRA_DEVICE, getBluetoothDevice());
+		broadcast.putExtra(EXTRA_CHARACTERISTC_STR, stringValue);
 		broadcast.putExtra(EXTRA_CHARACTERISTC_DATA, value);
 		LocalBroadcastManager.getInstance(this).sendBroadcast(broadcast);
+
+		displayTemperatureType = stringValue;
+		currentTypeValue       = value;
 
 		if (!mBinded) {
 			// Here we may update the notification to display the current value.

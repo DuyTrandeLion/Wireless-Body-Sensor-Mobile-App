@@ -59,6 +59,7 @@ public class HRSManager extends BleManager<HRSManagerCallbacks> {
 		return managerInstance;
 	}
 
+
 	public HRSManager(final Context context) {
 		super(context);
 	}
@@ -106,7 +107,16 @@ public class HRSManager extends BleManager<HRSManagerCallbacks> {
 
 			final String sensorPosition = getBodySensorPosition(characteristic.getValue()[0]);
 			//This will send callback to HRSActivity when HR sensor position on body is found in HR device
-			mCallbacks.onHRSensorPositionFound(gatt.getDevice(), sensorPosition);
+			mCallbacks.onHRSensorPositionFound(gatt.getDevice(), sensorPosition, characteristic.getValue()[0]);
+		}
+
+		@Override
+		protected void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+			Logger.a(mLogSession, "\"" + BodySensorLocationParser.parse(characteristic) + "\" write");
+
+			final String sensorPosition = getBodySensorPosition(characteristic.getValue()[0]);
+			//This will send callback to HRSActivity when HR sensor position on body is found in HR device
+			mCallbacks.onCharacteristicValueWritten(gatt.getDevice(), sensorPosition, characteristic.getValue()[0]);
 		}
 
 		@Override
@@ -129,6 +139,14 @@ public class HRSManager extends BleManager<HRSManagerCallbacks> {
 			mCallbacks.onHRValueReceived(gatt.getDevice(), hrValue);
 		}
 	};
+
+	/**
+	 * Sends the new temperature type to Temperature Type characteristic.
+	 * @param value the position to be sent
+	 */
+	public static void sendNewCharacteristicValue(final byte value) {
+
+	}
 
 	/**
 	 * This method will decode and return Heart rate sensor position on body

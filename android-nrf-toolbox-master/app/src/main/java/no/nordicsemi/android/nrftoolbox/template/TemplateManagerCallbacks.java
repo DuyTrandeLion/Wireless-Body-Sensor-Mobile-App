@@ -55,6 +55,6 @@ public interface TemplateManagerCallbacks extends BleManagerCallbacks {
 	 * @param device a device from which the value was obtained
 	 * @param value
 	 */
-	void onCharacteristicValueWritten(final BluetoothDevice device, byte value);
+	void onCharacteristicValueWritten(final BluetoothDevice device, String stringValue, byte value);
 
 }

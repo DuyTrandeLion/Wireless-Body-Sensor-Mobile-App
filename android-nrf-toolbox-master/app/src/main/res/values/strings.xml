@@ -48,7 +48,7 @@
     <string name="action_mqtt_connect">KẾT NỐI SERVER</string>
     <string name="action_mqtt_disconnect">NGẮT KẾT NỐI SERVER</string>
     <string name="action_save_data">LƯU</string>
-    <string name="action_change">C</string>
+    <string name="action_change">Thay đổi</string>
 
     <string name="drawer_open">Open</string>
     <string name="drawer_close">Close</string>

@@ -89,7 +89,5 @@
 	</string-array>
 	<string name="rhts_locations_other">Reserved</string>
 
-    <string name="template_about_text">This is an empty profile that may be easily adopted to match customer requirements.
-		The Bluetooth Smart connection is handled by the Manager in Template Service.
-		\n\nBy default this profile displays the Heart Rate value.</string>
+    <string name="template_about_text">Đọc nhiệt độ cơ thể nhận được từ cảm biến</string>
 </resources>

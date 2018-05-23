@@ -37,6 +37,6 @@
 		android:defaultValue="0"
 		android:entries="@array/template_settings_type"
 		android:entryValues="@array/template_settings_type_values"
-		android:key="settings_template_data" />
+		android:key="settings_template_type" />
 
 </PreferenceScreen>

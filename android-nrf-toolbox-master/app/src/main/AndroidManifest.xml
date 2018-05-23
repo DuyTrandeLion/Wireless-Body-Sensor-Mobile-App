@@ -108,6 +108,9 @@
                 <category android:name="no.nordicsemi.android.nrftoolbox.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".hrs.settings.SettingsActivity"
+            android:label="@string/hrs_settings_title" />
 
         <activity android:name=".mqtt.MQTTActivity"
             android:icon="@drawable/ic_mqtt_feature"
