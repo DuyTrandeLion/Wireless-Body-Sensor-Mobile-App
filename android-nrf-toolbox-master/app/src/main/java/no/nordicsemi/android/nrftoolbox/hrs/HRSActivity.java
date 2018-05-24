@@ -158,7 +158,7 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 		userAge        = prefs.getInt("SAVE_USER_AGE", 0);
 		userID         = prefs.getString("SAVE_USER_ID", null);
 		userFone       = prefs.getString("SAVE_USER_FONE", null);
-		
+
 		int savedDataSize = prefs.getInt(HRS_KEY_COUNT, 0);
 
 		if (checkMQTTConnectStatus()) {
