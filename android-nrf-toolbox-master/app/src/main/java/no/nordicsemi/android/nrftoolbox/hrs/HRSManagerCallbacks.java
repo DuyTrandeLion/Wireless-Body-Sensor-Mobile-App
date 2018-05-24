@@ -43,7 +43,16 @@ public interface HRSManagerCallbacks extends BleManagerCallbacks {
 	 * @param value
 	 *            the new value
 	 */
-	void onHRValueReceived(final BluetoothDevice device, int value);
+	void onHRValueReceived16bits(final BluetoothDevice device, int value, int extraParsedValue);
+
+	/**
+	 * Called when new Heart Rate value has been obtained from the sensor
+	 *
+	 * @param device  the bluetooth device from which the value was obtained
+	 * @param value
+	 *            the new value
+	 */
+	void onHRValueReceived8bits(final BluetoothDevice device, int value);
 
 	/**
 	 * Called when a characteristic value is written.

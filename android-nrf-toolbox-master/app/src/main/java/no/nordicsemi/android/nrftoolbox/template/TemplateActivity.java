@@ -108,7 +108,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	private LineChart mChart;
 	float[] dataArray;
 	int[]   HRArray;
-	int maxDatasize = 2592000/4; /* 30/4 days */
+	int maxDatasize = 2592000/30; /* 30/30 days */
 
 	// Save state
 	String PreferenceKey = "SavedKey";
@@ -160,11 +160,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 		userID         = prefs.getString("SAVE_USER_ID", null);
 		userFone       = prefs.getString("SAVE_USER_FONE", null);
 
-		boolean redrawGraph = false;
 		int savedDataSize = prefs.getInt(HTS_KEY_COUNT, 0);
-		if (savedDataSize > 0) {
-			redrawGraph = true;
-		}
 
         if (checkMQTTConnectStatus()) {
             //connectServerButton.setText(R.string.action_mqtt_disconnect);
@@ -187,13 +183,21 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 
 		setGUI();
 		startShowGraph();
-		if (redrawGraph) {
+		if (savedDataSize > 0) {
 			dataArray = new float[savedDataSize];
 			for (int i = 0; i < savedDataSize; i++) {
 				dataArray[i] = prefs.getFloat(HTS_KEY_VAL_PREFIX + i, 0);
 			}
 			setData(dataArray);
 			mChart.invalidate();
+		}
+
+		int HRSDataArraySize = prefs.getInt(HRS_KEY_COUNT, 0);
+		if (HRSDataArraySize > 0) {
+			HRArray = new int[HRSDataArraySize];
+			for (int i = 0; i < HRSDataArraySize; i++) {
+				HRArray[i] = prefs.getInt(HRS_KEY_VAL_PREFIX + i, 0);
+			}
 		}
 	}
 
