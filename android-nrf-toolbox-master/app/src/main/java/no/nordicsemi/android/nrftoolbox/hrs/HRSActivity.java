@@ -352,7 +352,12 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 			if (!isUploading) {
 				isUploading  = true;
 				uploadDataButton.setText(R.string.action_uploading);
-				String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(7000) + "}}";
+				String timePayload = "{"
+						+ "\"Upload State\":" + "\"Start\"" + ","
+						+ "\"User Info\":{" + "\"Name\":" + "\"" + userFullName + "\"" + ","
+						+ "\"Age\":" + String.valueOf(userAge) + ","
+						+ "\"ID\":" + "\"" + userID + "\"" + ","
+						+ "\"Phone Number\":" + "\"" + userFone + "\"" + "}" + "}";
 				mqttPublish(timePayload);
 				Toast.makeText(HRSActivity.this, "Bắt đầu gửi dữ liệu", Toast.LENGTH_LONG).show();
 				publishTimer = new CountDownTimer(11000, 1000) {
@@ -365,10 +370,10 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 //						String SensorValues = "{\"d\":{" + "\"Heart Rate value\":" + String.valueOf(mHRValue) + ","
 //								+ "\"Body temperature\":" + String.valueOf(mHTSValue) + "}}";
 						String SensorValues = "{"
-								+ "\"User Info\":{" + "\"Name:\"" + "\"" + userFullName + "\"" + ","
-								+ "\"Age:\"" + String.valueOf(userAge) + ","
-								+ "\"ID:\"" + "\"" + userID + "\"" + ","
-								+ "\"Phone Number:\"" + "\"" + userFone + "\"" + "}" + ","
+								+ "\"User Info\":{" + "\"Name\":" + "\"" + userFullName + "\"" + ","
+								+ "\"Age\":" + String.valueOf(userAge) + ","
+								+ "\"ID\":" + "\"" + userID + "\"" + ","
+								+ "\"Phone Number\":" + "\"" + userFone + "\"" + "}" + ","
 								+ "\"State\":{" + "\"Heart Rate value\":" + String.valueOf(mHrmValue) + "}"
 								+ "}";
 						mqttPublish(SensorValues);
@@ -379,7 +384,12 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 			else {
 				publishTimer.cancel();
 				isUploading = false;
-				String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(8000) + "}}";
+				String timePayload = "{"
+						+ "\"Upload State\":" + "\"Stop\"" + ","
+						+ "\"User Info\":{" + "\"Name\":" + "\"" + userFullName + "\"" + ","
+						+ "\"Age\":" + String.valueOf(userAge) + ","
+						+ "\"ID\":" + "\"" + userID + "\"" + ","
+						+ "\"Phone Number\":" + "\"" + userFone + "\"" + "}" + "}";
 				mqttPublish(timePayload);
 				Toast.makeText(HRSActivity.this, "Ngưng gửi dữ liệu", Toast.LENGTH_LONG).show();
 				uploadDataButton.setText(R.string.action_upload);

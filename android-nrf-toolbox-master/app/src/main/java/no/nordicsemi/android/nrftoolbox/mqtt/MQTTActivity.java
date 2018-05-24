@@ -42,7 +42,7 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
     String mqttAuthMethod;
     String mqttAuthToken;
     String userFullName;
-    String userAge;
+    int    userAge;
     String userID;
     String userFone;
     int    mqttPort;
@@ -130,8 +130,10 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
         txtInputDeviceName.setText(prefs.getString("SAVE_INPUT_DEVICE_NAME", null));
         txtInputAuthMethod.setText(prefs.getString("SAVE_INPUT_AUTH_METHOD", null));
         txtInputAuthToken.setText(prefs.getString("SAVE_INPUT_AUTH_TOKEN", null));
+
         txtInputUserFullName.setText(prefs.getString("SAVE_USER_FULL_NAME", null));
-        txtInputUserAge.setText(prefs.getInt("SAVE_USER_AGE", 0));
+        userAge = prefs.getInt("SAVE_USER_AGE", 0);
+        txtInputUserAge.setText(String.valueOf(userAge));
         txtInputUserID.setText(prefs.getString("SAVE_USER_ID", null));
         txtInputUserFone.setText(prefs.getString("SAVE_USER_FONE", null));
 
@@ -169,7 +171,7 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
             editor.putString("SAVE_CLIENT_ID", mqttClientID);
 
             editor.putString("SAVE_USER_FULL_NAME", userFullName);
-            editor.putString("SAVE_USER_AGE", userAge);
+            editor.putInt("SAVE_USER_AGE", userAge);
             editor.putString("SAVE_USER_ID", userID);
             editor.putString("SAVE_USER_FONE", userFone);
 
@@ -209,10 +211,11 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
             mqttAuthMethod = txtInputAuthMethod.getText().toString();
             mqttAuthToken  = txtInputAuthToken.getText().toString();
 
-            userFullName   = txtInputUserFullName.getText().toString();
-            userAge        = txtInputUserAge.getText().toString();
-            userID         = txtInputUserID.getText().toString();
-            userFone       = txtInputUserFone.getText().toString();
+            userFullName     = txtInputUserFullName.getText().toString();
+            String stringAge = txtInputUserAge.getText().toString();
+            userAge          = Integer.parseInt(stringAge);
+            userID           = txtInputUserID.getText().toString();
+            userFone         = txtInputUserFone.getText().toString();
 
             if (!checkValidInfo()) {
                 Toast.makeText(MQTTActivity.this, "Vui lòng điền đủ thông tin", Toast.LENGTH_LONG).show();

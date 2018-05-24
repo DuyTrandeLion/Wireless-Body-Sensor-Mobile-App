@@ -355,7 +355,12 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
             if (!isUploading) {
                 isUploading  = true;
                 uploadDataButton.setText(R.string.action_uploading);
-                String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(7000) + "}}";
+                String timePayload = "{"
+						+ "\"Upload State\":" + "\"Start\"" + ","
+						+ "\"User Info\":{" + "\"Name\":" + "\"" + userFullName + "\"" + ","
+						+ "\"Age\":" + String.valueOf(userAge) + ","
+						+ "\"ID\":" + "\"" + userID + "\"" + ","
+						+ "\"Phone Number\":" + "\"" + userFone + "\"" + "}" + "}";
                 mqttPublish(timePayload);
                 Toast.makeText(TemplateActivity.this, "Bắt đầu gửi dữ liệu", Toast.LENGTH_LONG).show();
                 publishTimer = new CountDownTimer(11000, 1000) {
@@ -366,10 +371,10 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
                     @Override
                     public void onFinish() {
                         String SensorValues = "{"
-                                + "\"User Info\":{" + "\"Name:\"" + "\"" + userFullName + "\"" + ","
-								+ "\"Age:\"" + String.valueOf(userAge) + ","
-								+ "\"ID:\"" + "\"" + userID + "\"" + ","
-								+ "\"Phone Number:\"" + "\"" + userFone + "\"" + "}" + ","
+                                + "\"User Info\":{" + "\"Name\":" + "\"" + userFullName + "\"" + ","
+								+ "\"Age\":" + String.valueOf(userAge) + ","
+								+ "\"ID\":" + "\"" + userID + "\"" + ","
+								+ "\"Phone Number\":" + "\"" + userFone + "\"" + "}" + ","
 								+ "\"State\":{" + "\"Heart Rate value\":" + String.valueOf(mHRValue) + ","
                                 + "\"Body temperature\":" + String.valueOf(mHTSValue) + "}"
 								+ "}";
@@ -381,7 +386,12 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
             else {
                 publishTimer.cancel();
                 isUploading = false;
-                String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(8000) + "}}";
+                String timePayload = "{"
+						+ "\"Upload State\":" + "\"Stop\"" + ","
+						+ "\"User Info\":{" + "\"Name\":" + "\"" + userFullName + "\"" + ","
+						+ "\"Age\":" + String.valueOf(userAge) + ","
+						+ "\"ID\":" + "\"" + userID + "\"" + ","
+						+ "\"Phone Number\":" + "\"" + userFone + "\"" + "}" + "}";
                 mqttPublish(timePayload);
                 Toast.makeText(TemplateActivity.this, "Ngưng gửi dữ liệu", Toast.LENGTH_LONG).show();
                 uploadDataButton.setText(R.string.action_upload);
