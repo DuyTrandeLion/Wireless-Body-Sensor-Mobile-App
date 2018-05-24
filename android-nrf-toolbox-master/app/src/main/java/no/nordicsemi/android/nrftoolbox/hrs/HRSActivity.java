@@ -99,6 +99,8 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 	boolean sendNewLocation = false;
 	private int mCounter = 0;
 
+	float  mHTSValue;
+
 	final String HTS_KEY_COUNT = "HTS_COUNT";
 	final String HRS_KEY_COUNT = "HRS_COUNT";
 	final String HTS_KEY_VAL_PREFIX = "HTS_VAL_";
@@ -106,7 +108,7 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 	private LineChart mChart;
 	int[] dataArray;
 	float[] HTArray;
-	int maxDatasize = 2592000; /* 30 days */
+	int maxDatasize = 2592000/30; /* 30/30 days */
 
 	// Save state
 	String PreferenceKey = "SavedKey";
@@ -156,12 +158,8 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 		userAge        = prefs.getInt("SAVE_USER_AGE", 0);
 		userID         = prefs.getString("SAVE_USER_ID", null);
 		userFone       = prefs.getString("SAVE_USER_FONE", null);
-
-		boolean redrawGraph = false;
+		
 		int savedDataSize = prefs.getInt(HRS_KEY_COUNT, 0);
-		if (savedDataSize > 0) {
-			redrawGraph = true;
-		}
 
 		if (checkMQTTConnectStatus()) {
 			//connectServerButton.setText(R.string.action_mqtt_disconnect);
@@ -183,13 +181,21 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 		changeTypeButton.setOnClickListener(this);
 
 		setGUI();
-		if (redrawGraph) {
+		if (savedDataSize > 0) {
 			dataArray = new int[savedDataSize];
 			for (int i = 0; i < savedDataSize; i++) {
 				dataArray[i] = prefs.getInt(HRS_KEY_VAL_PREFIX + i, 0);
 			}
 			updateGraph(dataArray);
 			mChart.invalidate();
+		}
+
+		int HTSDataArraySize = prefs.getInt(HTS_KEY_COUNT, 0);
+		if (HTSDataArraySize > 0) {
+			HTArray = new float[HTSDataArraySize];
+			for (int i = 0; i < HTSDataArraySize; i++) {
+				HTArray[i] = prefs.getFloat(HTS_KEY_VAL_PREFIX + i, 0);
+			}
 		}
 	}
 
@@ -409,6 +415,14 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 			}
 		}
 
+		if (HTArray != null) {
+			dataSize = HTArray.length;
+			editor.putInt(HTS_KEY_COUNT, dataSize);
+			for (int i = 0; i < dataSize; i++) {
+				editor.putFloat(HTS_KEY_VAL_PREFIX + i, HTArray[i]);
+			}
+		}
+
 		editor.apply();
 	}
 
@@ -586,14 +600,40 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 					dataArray[0] = mHrmValue;
 				}
 				else {
-					int[] newDataArray = new int[dataArray.length + 1];
-					for (int i = 0; i < dataArray.length; i++) {
-						newDataArray[i] = dataArray[i];
+					if ((dataArray.length + 1) > maxDatasize) {
+						dataArray = new int[1];
+						dataArray[0] = mHrmValue;
 					}
-					newDataArray[dataArray.length] = mHrmValue;
-					dataArray = newDataArray;
-					updateGraph(dataArray);
-					mChart.invalidate();
+					else {
+						int[] newDataArray = new int[dataArray.length + 1];
+						for (int i = 0; i < dataArray.length; i++) {
+							newDataArray[i] = dataArray[i];
+						}
+						newDataArray[dataArray.length] = mHrmValue;
+						dataArray = newDataArray;
+					}
+				}
+				updateGraph(dataArray);
+				mChart.invalidate();
+			}
+			if (mHTSValue > 0) {
+				if (HTArray == null) {
+					HTArray = new float[1];
+					HTArray[0] = mHTSValue;
+				}
+				else {
+					if ((HTArray.length + 1) > maxDatasize) {
+						HTArray = new float[1];
+						HTArray[0] = mHTSValue;
+					}
+					else {
+						float[] newHTArray = new float[HTArray.length + 1];
+						for (int i = 0; i < HTArray.length; i++) {
+							newHTArray[i] = HTArray[i];
+						}
+						newHTArray[HTArray.length] = mHTSValue;
+						HTArray = newHTArray;
+					}
 				}
 			}
 			if (isGraphInProgress)
@@ -672,7 +712,14 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 	}
 
 	@Override
-	public void onHRValueReceived(final BluetoothDevice device, int value) {
+	public void onHRValueReceived16bits(final BluetoothDevice device, int value, int extraParsedValue) {
+		mHrmValue = value;
+		mHTSValue = (float)extraParsedValue;
+		setHRSValueOnView(mHrmValue);
+	}
+
+	@Override
+	public void onHRValueReceived8bits(final BluetoothDevice device, int value) {
 		mHrmValue = value;
 		setHRSValueOnView(mHrmValue);
 	}

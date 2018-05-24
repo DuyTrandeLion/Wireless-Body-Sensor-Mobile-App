@@ -26,9 +26,9 @@
 	<ListPreference
 		android:title="@string/template_type_label"
 		android:summary="@string/hrs_settings_location_summary"
-		android:defaultValue="1"
+		android:defaultValue="0"
 		android:entries="@array/hrs_settings_locations"
-		android:entryValues="@array/hrs_settings_location_values"
+		android:entryValues="@array/hrs_settings_locations_values"
 		android:key="settings_hrs_location" />
 
 </PreferenceScreen>
