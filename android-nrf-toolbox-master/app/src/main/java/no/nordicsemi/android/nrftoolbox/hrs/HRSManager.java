@@ -47,12 +47,12 @@ public class HRSManager extends BleManager<HRSManagerCallbacks> {
 
 	private BluetoothGattCharacteristic mHRCharacteristic, mHRLocationCharacteristic;
 
-	private static HRSManager managerInstance = null;
+	public HRSManager managerInstance = null;
 
 	/**
 	 * singleton implementation of HRSManager class
 	 */
-	public static synchronized HRSManager getInstance(final Context context) {
+	public synchronized HRSManager getInstance(final Context context) {
 		if (managerInstance == null) {
 			managerInstance = new HRSManager(context);
 		}
@@ -144,8 +144,20 @@ public class HRSManager extends BleManager<HRSManagerCallbacks> {
 	 * Sends the new temperature type to Temperature Type characteristic.
 	 * @param value the position to be sent
 	 */
-	public static void sendNewCharacteristicValue(final byte value) {
+	public void sendNewCharacteristicValue(final byte value) {
+		if (mHRLocationCharacteristic == null)
+			return;
 
+		final byte buffer[] = {value};
+		int mBufferOffset;
+
+		// Depending on whether the characteristic has the WRITE REQUEST property or not
+		final boolean writeRequest = (mHRLocationCharacteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE) > 0;
+
+		if (writeRequest) {
+			mBufferOffset = buffer.length;
+			enqueue(Request.newWriteRequest(mHRLocationCharacteristic, buffer, 0, mBufferOffset));
+		}
 	}
 
 	/**
