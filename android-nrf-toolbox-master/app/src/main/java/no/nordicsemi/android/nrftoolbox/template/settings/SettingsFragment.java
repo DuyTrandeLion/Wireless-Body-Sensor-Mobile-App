@@ -28,7 +28,7 @@ import android.preference.PreferenceFragment;
 import no.nordicsemi.android.nrftoolbox.R;
 
 public class SettingsFragment extends PreferenceFragment {
-	public static final String SETTINGS_DATA_UNIT = "settings_template_data";
+	public static final String SETTINGS_DATA_UNIT = "c";
 	// TODO values matching those in settings_template.xml file in /res/xml
 	public static final int SETTINGS_VARIANT_C = 0;
 	public static final int SETTINGS_VARIANT_F = 1;
