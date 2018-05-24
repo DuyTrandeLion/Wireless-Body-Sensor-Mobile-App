@@ -30,6 +30,7 @@ import android.graphics.Point;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.view.Menu;
 import android.view.View;
@@ -66,6 +67,7 @@ import no.nordicsemi.android.nrftoolbox.FeaturesActivity;
 import no.nordicsemi.android.nrftoolbox.R;
 import no.nordicsemi.android.nrftoolbox.profile.BleProfileActivity;
 import no.nordicsemi.android.nrftoolbox.hrs.settings.SettingsActivity;
+import no.nordicsemi.android.nrftoolbox.hrs.settings.SettingsFragment;
 
 /**
  * HRSActivity is the main Heart rate activity. It implements HRSManagerCallbacks to receive callbacks from HRSManager class. The activity supports portrait and landscape orientations. The activity
@@ -85,13 +87,16 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 	private final static int REFRESH_INTERVAL = 1000; // 1 second interval
 
 	private Handler mHandler = new Handler();
+	HRSManager manager;
 
 	private boolean isGraphInProgress = false;
 
 	private TextView mHRSValue, mHRSPosition;
 
-	private int    mHrmValue = 0;
-	private String mHrmPosition;
+	int    mHrmValue = 0;
+	byte   HRSPosition;
+	byte   newHRSPosition;
+	boolean sendNewLocation = false;
 	private int mCounter = 0;
 
 	final String HTS_KEY_COUNT = "HTS_COUNT";
@@ -114,6 +119,11 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 	private String mqttDeviceName;
 	private String mqttAuthMethod;
 	private String mqttAuthToken;
+
+	private String userFullName;
+	private int    userAge;
+	private String userID;
+	private String userFone;
 
 	private static MqttAndroidClient  mqttClient  = null;
 	private static MqttConnectOptions mqttOptions = null;
@@ -141,6 +151,11 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 		mqttAuthToken  = prefs.getString("SAVE_INPUT_AUTH_TOKEN", null);
 		mqttHostName   = prefs.getString("SAVE_MQTT_HOST", null);
 		mqttClientID   = prefs.getString("SAVE_CLIENT_ID", null);
+
+		userFullName   = prefs.getString("SAVE_USER_FULL_NAME", null);
+		userAge        = prefs.getInt("SAVE_USER_AGE", 0);
+		userID         = prefs.getString("SAVE_USER_ID", null);
+		userFone       = prefs.getString("SAVE_USER_FONE", null);
 
 		boolean redrawGraph = false;
 		int savedDataSize = prefs.getInt(HRS_KEY_COUNT, 0);
@@ -304,8 +319,10 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 		}
 		else if (v.getId() == R.id.action_change_type) {
 			if (checkValidInfo()) {
+				byte a = newHRSPosition;
+				int b = 8;
+				manager.sendNewCharacteristicValue(newHRSPosition);
 				Toast.makeText(HRSActivity.this, "Thay đổi vị trí đo thành công", Toast.LENGTH_LONG).show();
-				HRSManager.sendNewCharacteristicValue((byte)0);
 			}
 			else {
 				Toast.makeText(HRSActivity.this, "Vui lòng kết nối với thiết bị", Toast.LENGTH_LONG).show();
@@ -335,7 +352,12 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 			if (!isUploading) {
 				isUploading  = true;
 				uploadDataButton.setText(R.string.action_uploading);
-				String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(7000) + "}}";
+				String timePayload = "{"
+						+ "\"Upload State\":" + "\"Start\"" + ","
+						+ "\"User Info\":{" + "\"Name\":" + "\"" + userFullName + "\"" + ","
+						+ "\"Age\":" + String.valueOf(userAge) + ","
+						+ "\"ID\":" + "\"" + userID + "\"" + ","
+						+ "\"Phone Number\":" + "\"" + userFone + "\"" + "}" + "}";
 				mqttPublish(timePayload);
 				Toast.makeText(HRSActivity.this, "Bắt đầu gửi dữ liệu", Toast.LENGTH_LONG).show();
 				publishTimer = new CountDownTimer(11000, 1000) {
@@ -347,7 +369,13 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 					public void onFinish() {
 //						String SensorValues = "{\"d\":{" + "\"Heart Rate value\":" + String.valueOf(mHRValue) + ","
 //								+ "\"Body temperature\":" + String.valueOf(mHTSValue) + "}}";
-						String SensorValues = "{\"d\":{" + "\"Heart Rate value\":" + String.valueOf(mHrmValue) + "}}";
+						String SensorValues = "{"
+								+ "\"User Info\":{" + "\"Name\":" + "\"" + userFullName + "\"" + ","
+								+ "\"Age\":" + String.valueOf(userAge) + ","
+								+ "\"ID\":" + "\"" + userID + "\"" + ","
+								+ "\"Phone Number\":" + "\"" + userFone + "\"" + "}" + ","
+								+ "\"State\":{" + "\"Heart Rate value\":" + String.valueOf(mHrmValue) + "}"
+								+ "}";
 						mqttPublish(SensorValues);
 						publishTimer.start();
 					}
@@ -356,7 +384,12 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 			else {
 				publishTimer.cancel();
 				isUploading = false;
-				String timePayload = "{\"d\":{" + "\"Time value\":" + String.valueOf(8000) + "}}";
+				String timePayload = "{"
+						+ "\"Upload State\":" + "\"Stop\"" + ","
+						+ "\"User Info\":{" + "\"Name\":" + "\"" + userFullName + "\"" + ","
+						+ "\"Age\":" + String.valueOf(userAge) + ","
+						+ "\"ID\":" + "\"" + userID + "\"" + ","
+						+ "\"Phone Number\":" + "\"" + userFone + "\"" + "}" + "}";
 				mqttPublish(timePayload);
 				Toast.makeText(HRSActivity.this, "Ngưng gửi dữ liệu", Toast.LENGTH_LONG).show();
 				uploadDataButton.setText(R.string.action_upload);
@@ -580,13 +613,23 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 
 	@Override
 	protected BleManager<HRSManagerCallbacks> initializeManager() {
-		final HRSManager manager = HRSManager.getInstance(getApplicationContext());
+		manager = new HRSManager(getApplicationContext());
 		manager.setGattCallbacks(this);
 		return manager;
 	}
 
+	private void setLocations() {
+		final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+		int location = Integer.parseInt(preferences.getString(SettingsFragment.SETTINGS_HRS_LOC, String.valueOf(SettingsFragment.SETTINGS_VARIANT_DEFAULT)));
+		if ((byte)location != newHRSPosition) {
+			newHRSPosition = (byte)location;
+			sendNewLocation = true;
+		}
+	}
+
 	private void setHRSValueOnView(final int value) {
 		runOnUiThread(() -> {
+			setLocations();
 			if (value >= MIN_POSITIVE_VALUE && value <= MAX_HR_VALUE) {
 				mHRSValue.setText(Integer.toString(value));
 			} else {
@@ -599,7 +642,6 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 		runOnUiThread(() -> {
 			if (position != null) {
 				mHRSPosition.setText(position);
-				mHrmPosition = position;
 			} else {
 				mHRSPosition.setText(R.string.not_available);
 			}
@@ -618,11 +660,14 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 
 	@Override
 	public void onHRSensorPositionFound(final BluetoothDevice device, final String position, final byte intPosition) {
+		HRSPosition    = intPosition;
+		newHRSPosition = intPosition;
 		setHRSPositionOnView(position);
 	}
 
 	@Override
 	public void onCharacteristicValueWritten(final BluetoothDevice device, String stringValue, byte value) {
+		newHRSPosition = value;
 		setHRSPositionOnView(stringValue);
 	}
 

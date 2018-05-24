@@ -50,8 +50,6 @@ public class TemplateManager extends BleManager<TemplateManagerCallbacks> {
 	private final static int GET_BIT24 = 0x00400000;
 	private final static int FIRST_BIT_MASK = 0x01;
 
-	public byte gWriteCharateristicValue;
-
 	/** The service UUID */
 	public final static UUID SERVICE_UUID = UUID.fromString("00001809-0000-1000-8000-00805f9b34fb"); // TODO change the UUID to your match your service
 	/** The characteristic UUID */

@@ -11,5 +11,10 @@
     <string name="mqtt_display_send_heart_rate">Nhịp tim</string>
     <string name="mqtt_display_send_heart_rate_location">Vị trí đo nhịp tim</string>
 
+    <string name="user_full_name">Họ Tên</string>
+    <string name="user_age">Tuổi</string>
+    <string name="user_ID">Số CMND</string>
+    <string name="user_fone">Số ĐT Liên Lạc</string>
+
     <string name="mqtt_about_text">This is the tab where users can setup MQTT name info.</string>
 </resources>

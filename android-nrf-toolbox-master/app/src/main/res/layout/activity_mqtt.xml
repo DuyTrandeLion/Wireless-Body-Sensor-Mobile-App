@@ -121,6 +121,110 @@
             android:visibility="gone" />
 
         <no.nordicsemi.android.nrftoolbox.widget.TrebuchetTextView
+            android:id="@+id/text_user_full_name_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="25dp"
+            android:layout_marginTop="130dp"
+            android:text="@string/user_full_name"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/input_user_full_name_token"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_alignBaseline="@+id/text_user_full_name_label"
+            android:layout_alignBottom="@+id/text_user_full_name_label"
+            android:layout_alignParentEnd="true"
+            android:layout_weight="0.0"
+            android:ems="10"
+            android:hint="Họ và tên"
+            android:inputType="textPersonName"
+            android:layout_marginStart="160dp"
+            android:layout_marginTop="130dp" />
+
+        <no.nordicsemi.android.nrftoolbox.widget.TrebuchetTextView
+            android:id="@+id/text_user_age_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="25dp"
+            android:layout_marginTop="165dp"
+            android:text="@string/user_age"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/input_user_age_token"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_alignBaseline="@+id/text_user_age_label"
+            android:layout_alignBottom="@+id/text_user_age_label"
+            android:layout_alignParentEnd="true"
+            android:layout_weight="0.0"
+            android:ems="10"
+            android:hint="18+"
+            android:inputType="text|numberDecimal"
+            android:layout_marginStart="160dp"
+            android:layout_marginTop="165dp" />
+
+        <no.nordicsemi.android.nrftoolbox.widget.TrebuchetTextView
+            android:id="@+id/text_user_id_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="25dp"
+            android:layout_marginTop="200dp"
+            android:text="@string/user_ID"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/input_user_id_token"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_alignBaseline="@+id/text_user_id_label"
+            android:layout_alignBottom="@+id/text_user_id_label"
+            android:layout_alignParentEnd="true"
+            android:layout_weight="0.0"
+            android:ems="10"
+            android:hint="1234567890"
+            android:inputType="text|numberDecimal"
+            android:layout_marginStart="160dp"
+            android:layout_marginTop="200dp" />
+
+        <no.nordicsemi.android.nrftoolbox.widget.TrebuchetTextView
+            android:id="@+id/text_user_fone_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="25dp"
+            android:layout_marginTop="235dp"
+            android:text="@string/user_fone"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/input_user_fone_token"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_alignBaseline="@+id/text_user_fone_label"
+            android:layout_alignBottom="@+id/text_user_fone_label"
+            android:layout_alignParentEnd="true"
+            android:layout_weight="0.0"
+            android:ems="10"
+            android:hint="09xxxxxxx"
+            android:inputType="textPhonetic"
+            android:layout_marginStart="160dp"
+            android:layout_marginTop="235dp" />
+
+        <no.nordicsemi.android.nrftoolbox.widget.TrebuchetTextView
             android:id="@+id/text_send_temperature_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

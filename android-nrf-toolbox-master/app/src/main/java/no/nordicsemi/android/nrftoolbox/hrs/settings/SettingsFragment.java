@@ -28,7 +28,7 @@ import android.preference.PreferenceFragment;
 import no.nordicsemi.android.nrftoolbox.R;
 
 public class SettingsFragment extends PreferenceFragment {
-	public static final String SETTINGS_HRS_LOC = "settings_template_data";
+	public static final String SETTINGS_HRS_LOC = "settings_hrs_loc";
 	// TODO values matching those in settings_template.xml file in /res/xml
 	public static final int SETTINGS_VARIANT_OTHER = 0;
 	public static final int SETTINGS_VARIANT_DEFAULT = SETTINGS_VARIANT_OTHER;

@@ -41,6 +41,10 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
     String mqttDeviceName;
     String mqttAuthMethod;
     String mqttAuthToken;
+    String userFullName;
+    int    userAge;
+    String userID;
+    String userFone;
     int    mqttPort;
 
     public boolean isUploading = false;
@@ -53,6 +57,10 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
     EditText txtInputDeviceName;
     EditText txtInputAuthMethod;
     EditText txtInputAuthToken;
+    EditText txtInputUserFullName;
+    EditText txtInputUserAge;
+    EditText txtInputUserID;
+    EditText txtInputUserFone;
     TextView txtInputPort;
     TextView displayTemperature;
 
@@ -102,6 +110,12 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
 //        txtInputPort        = findViewById(R.id.input_mqtt_port);
         displayTemperature  = findViewById(R.id.temperature_display);
 
+        txtInputUserFullName  = findViewById(R.id.input_user_full_name_token);
+        txtInputUserAge       = findViewById(R.id.input_user_age_token);
+        txtInputUserID        = findViewById(R.id.input_user_id_token);
+        txtInputUserFone      = findViewById(R.id.input_user_fone_token);
+
+
 //        connectServerButton = findViewById(R.id.action_server_connect);
 //        uploadDataButton    = findViewById(R.id.action_upload);
         saveUserDataButton  = findViewById(R.id.action_save_user_config_data);
@@ -116,6 +130,13 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
         txtInputDeviceName.setText(prefs.getString("SAVE_INPUT_DEVICE_NAME", null));
         txtInputAuthMethod.setText(prefs.getString("SAVE_INPUT_AUTH_METHOD", null));
         txtInputAuthToken.setText(prefs.getString("SAVE_INPUT_AUTH_TOKEN", null));
+
+        txtInputUserFullName.setText(prefs.getString("SAVE_USER_FULL_NAME", null));
+        userAge = prefs.getInt("SAVE_USER_AGE", 0);
+        txtInputUserAge.setText(String.valueOf(userAge));
+        txtInputUserID.setText(prefs.getString("SAVE_USER_ID", null));
+        txtInputUserFone.setText(prefs.getString("SAVE_USER_FONE", null));
+
         //isUploading = prefs.getBoolean("SAVE_UPLOADING_STATE", false);
 
 //        if (checkMQTTConnectStatus()) {
@@ -148,6 +169,11 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
             editor.putString("SAVE_INPUT_AUTH_TOKEN", txtInputAuthToken.getText().toString());
             editor.putString("SAVE_MQTT_HOST", mqttHostName);
             editor.putString("SAVE_CLIENT_ID", mqttClientID);
+
+            editor.putString("SAVE_USER_FULL_NAME", userFullName);
+            editor.putInt("SAVE_USER_AGE", userAge);
+            editor.putString("SAVE_USER_ID", userID);
+            editor.putString("SAVE_USER_FONE", userFone);
 
 //            editor.putBoolean("SAVE_UPLOADING_STATE", isUploading);
 
@@ -184,6 +210,13 @@ public class MQTTActivity extends AppCompatActivity implements View.OnClickListe
             mqttDeviceName = txtInputDeviceName.getText().toString();
             mqttAuthMethod = txtInputAuthMethod.getText().toString();
             mqttAuthToken  = txtInputAuthToken.getText().toString();
+
+            userFullName     = txtInputUserFullName.getText().toString();
+            String stringAge = txtInputUserAge.getText().toString();
+            userAge          = Integer.parseInt(stringAge);
+            userID           = txtInputUserID.getText().toString();
+            userFone         = txtInputUserFone.getText().toString();
+
             if (!checkValidInfo()) {
                 Toast.makeText(MQTTActivity.this, "Vui lòng điền đủ thông tin", Toast.LENGTH_LONG).show();
             }
