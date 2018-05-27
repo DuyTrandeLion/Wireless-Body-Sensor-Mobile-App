@@ -40,6 +40,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.LimitLine;
 import com.github.mikephil.charting.components.YAxis;
@@ -192,6 +193,7 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 			}
 			updateGraph(dataArray);
 			mChart.invalidate();
+			//mChart.animateXY(3000, 3000);
 		}
 
 		int HTSDataArraySize = prefs.getInt(HTS_KEY_COUNT, 0);
@@ -453,6 +455,8 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 
 		mChart.getAxisRight().setEnabled(false);
 
+		mChart.setBackgroundColor(Color.rgb(104, 241, 175));
+
 		showGraph();
 	}
 
@@ -573,6 +577,8 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 			mChart.getData().getDataSetCount() > 0) {
 
 			HRDataSet = (LineDataSet) mChart.getData().getDataSetByIndex(0);
+			HRDataSet.setMode(LineDataSet.Mode.HORIZONTAL_BEZIER);
+			HRDataSet.setCubicIntensity(0.2f);
 			HRDataSet.setValues(values);
 			mChart.getData().notifyDataChanged();
 			mChart.notifyDataSetChanged();
@@ -580,15 +586,17 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 		else {
 			// create a dataset and give it a type
 			HRDataSet = new LineDataSet(values, "Nhịp tim hiện tại");
+			HRDataSet.setMode(LineDataSet.Mode.HORIZONTAL_BEZIER);
+			HRDataSet.setCubicIntensity(0.2f);
 			HRDataSet.setLineWidth(2f);
-			HRDataSet.setColor(Color.RED);
+			HRDataSet.setColor(Color.WHITE);
 
 			ArrayList<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
 			dataSets.add(HRDataSet);
 
 			LineData data = new LineData(dataSets);
 			data.setValueTextSize(8f);
-			data.setValueTextColor(Color.BLUE);
+			data.setValueTextColor(Color.RED);
 
 			// set data
 			mChart.setData(data);
