@@ -108,6 +108,10 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 	private LineChart mChart;
 	int[] dataArray;
 	float[] HTArray;
+
+	int[] temperatureFraction = new int[4];
+	int   temperatureFractionIndex = 0;
+
 	int maxDatasize = 2592000/30; /* 30/30 days */
 
 	// Save state
@@ -127,10 +131,10 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 	private String userID;
 	private String userFone;
 
-	private static MqttAndroidClient  mqttClient  = null;
-	private static MqttConnectOptions mqttOptions = null;
+	private static MqttAndroidClient  mqttClient     = null;
+	private static MqttConnectOptions mqttOptions    = null;
 	private static CountDownTimer     publishTimer;
-
+	private static int                UploadInterval = 21000;
 	private boolean isUploading = false;
 
 	Button uploadDataButton;
@@ -366,7 +370,7 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 						+ "\"Phone Number\":" + "\"" + userFone + "\"" + "}" + "}";
 				mqttPublish(timePayload);
 				Toast.makeText(HRSActivity.this, "Bắt đầu gửi dữ liệu", Toast.LENGTH_LONG).show();
-				publishTimer = new CountDownTimer(11000, 1000) {
+				publishTimer = new CountDownTimer(UploadInterval, 1000) {
 					@Override
 					public void onTick(long millisUntilFinished) {
 					}
@@ -380,7 +384,8 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 								+ "\"Age\":" + String.valueOf(userAge) + ","
 								+ "\"ID\":" + "\"" + userID + "\"" + ","
 								+ "\"Phone Number\":" + "\"" + userFone + "\"" + "}" + ","
-								+ "\"State\":{" + "\"Heart Rate value\":" + String.valueOf(mHrmValue) + "}"
+								+ "\"State\":{" + "\"Heart Rate value\":" + String.valueOf(mHrmValue) + ","
+								+ "\"Body temperature\":" + String.valueOf(mHTSValue) + "}"
 								+ "}";
 						mqttPublish(SensorValues);
 						publishTimer.start();
@@ -714,7 +719,36 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 	@Override
 	public void onHRValueReceived16bits(final BluetoothDevice device, int value, int extraParsedValue) {
 		mHrmValue = value;
-		mHTSValue = (float)extraParsedValue;
+
+		if (extraParsedValue == 13)
+		{
+			temperatureFractionIndex = 0;
+			temperatureFraction[temperatureFractionIndex] = extraParsedValue;
+			temperatureFractionIndex++;
+		}
+		else if ((extraParsedValue == 10) || (temperatureFractionIndex == 2))
+		{
+			temperatureFraction[temperatureFractionIndex] = extraParsedValue;
+			temperatureFractionIndex++;
+		}
+		else if ((temperatureFractionIndex == 1) || ((temperatureFractionIndex == 3)))
+		{
+			temperatureFraction[temperatureFractionIndex] = extraParsedValue;
+			if (temperatureFractionIndex == 3)
+			{
+				temperatureFractionIndex = 0;
+				mHTSValue = (float)temperatureFraction[1];
+				mHTSValue = mHTSValue + (float)(temperatureFraction[3] / 100.0);
+			}
+			else
+			{
+				temperatureFractionIndex++;
+			}
+		}
+		else
+		{
+			mHTSValue = 37;
+		}
 		setHRSValueOnView(mHrmValue);
 	}
 

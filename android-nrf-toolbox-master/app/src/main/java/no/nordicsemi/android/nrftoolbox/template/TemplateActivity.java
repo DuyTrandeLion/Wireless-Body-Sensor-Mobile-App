@@ -127,9 +127,10 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 	private String userID;
 	private String userFone;
 
-	private static MqttAndroidClient  mqttClient  = null;
-	private static MqttConnectOptions mqttOptions = null;
+	private static MqttAndroidClient  mqttClient     = null;
+	private static MqttConnectOptions mqttOptions    = null;
 	private static CountDownTimer     publishTimer;
+	private static int                UploadInterval = 21000;
 
 	private boolean isUploading = false;
 
@@ -366,7 +367,7 @@ public class TemplateActivity extends BleProfileServiceReadyActivity<TemplateSer
 						+ "\"Phone Number\":" + "\"" + userFone + "\"" + "}" + "}";
                 mqttPublish(timePayload);
                 Toast.makeText(TemplateActivity.this, "Bắt đầu gửi dữ liệu", Toast.LENGTH_LONG).show();
-                publishTimer = new CountDownTimer(11000, 1000) {
+                publishTimer = new CountDownTimer(UploadInterval, 1000) {
                     @Override
                     public void onTick(long millisUntilFinished) {
                     }
