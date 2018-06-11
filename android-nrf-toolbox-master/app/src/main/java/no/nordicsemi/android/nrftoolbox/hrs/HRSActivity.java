@@ -75,7 +75,7 @@ import no.nordicsemi.android.nrftoolbox.hrs.settings.SettingsFragment;
  * uses external library AChartEngine to show real time graph of HR values.
  */
 // TODO The HRSActivity should be rewritten to use the service approach, like other do.
-public class HRSActivity extends BleProfileActivity implements HRSManagerCallbacks, View.OnClickListener {
+public class HRSActivity extends BleProfileActvity implements HRSManagerCallbacks, View.OnClickListener {
 	@SuppressWarnings("unused")
 	private final String TAG = "HRSActivity";
 
