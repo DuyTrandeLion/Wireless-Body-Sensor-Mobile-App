@@ -154,17 +154,21 @@
 			android:layout_marginStart="13dp"
 			android:layout_toEndOf="@+id/trebuchetBoldTextView5"
 			android:onClick="onConnectClicked"
+			android:shadowDx="20"
+			android:shadowDy="11"
 			android:text="@string/action_connect" />
 
 		<Button
 			android:id="@+id/action_upload"
-			style="@style/Widget.Connect"
+			style="@style/Widget.Upload"
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:layout_alignParentEnd="true"
 			android:layout_below="@+id/chart1"
 			android:layout_marginEnd="13dp"
 			android:onClick="onUploadClicked"
+			android:shadowDx="20"
+			android:shadowDy="11"
 			android:text="@string/action_upload" />
 
 		<Button

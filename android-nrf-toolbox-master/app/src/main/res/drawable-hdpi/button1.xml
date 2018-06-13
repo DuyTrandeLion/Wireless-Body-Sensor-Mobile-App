@@ -1,0 +1,23 @@
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/actionBarColor" >
+
+    <item>
+        <shape xmlns:android="http://schemas.android.com/apk/res/android" >
+            <corners android:radius="25dp" />
+
+            <gradient
+                android:angle="225"
+                android:centerX="35%"
+                android:centerColor="#285E51"
+                android:startColor="#252852"
+                android:endColor="#FAEDFF"
+                android:type="linear"
+                />
+            <stroke
+                android:width="3dp"
+                android:color="#878787"
+                />
+        </shape>
+    </item>
+
+</ripple>

@@ -33,6 +33,7 @@
 
 	<no.nordicsemi.android.nrftoolbox.widget.ForegroundRelativeLayout
 		style="@style/HeaderShadow"
+		android:background="@layout/gradient"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent">
 

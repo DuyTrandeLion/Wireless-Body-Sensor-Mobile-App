@@ -25,9 +25,20 @@
 
     <item>
         <shape xmlns:android="http://schemas.android.com/apk/res/android" >
-            <corners android:radius="10dp" />
+            <corners android:radius="25dp" />
 
-            <solid android:color="#FF000000" />
+            <gradient
+                android:angle="45"
+                android:centerX="35%"
+                android:centerColor="#285E51"
+                android:startColor="#252852"
+                android:endColor="#FAEDFF"
+                android:type="linear"
+                />
+            <stroke
+                android:width="3dp"
+                android:color="#878787"
+                />
         </shape>
     </item>
 
