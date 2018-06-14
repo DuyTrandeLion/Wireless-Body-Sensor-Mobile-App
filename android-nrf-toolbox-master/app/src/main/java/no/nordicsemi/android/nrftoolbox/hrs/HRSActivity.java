@@ -108,6 +108,10 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 	private LineChart mChart;
 	int[] dataArray;
 	float[] HTArray;
+
+	int[] temperatureFraction = new int[4];
+	int   temperatureFractionIndex = 0;
+
 	int maxDatasize = 2592000/30; /* 30/30 days */
 
 	// Save state
@@ -715,7 +719,35 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 	@Override
 	public void onHRValueReceived16bits(final BluetoothDevice device, int value, int extraParsedValue) {
 		mHrmValue = value;
-		mHTSValue = (float)extraParsedValue;
+		if (extraParsedValue == 13)
+		{
+			temperatureFractionIndex = 0;
+			temperatureFraction[temperatureFractionIndex] = extraParsedValue;
+			temperatureFractionIndex++;
+		}
+		else if ((extraParsedValue == 10) || (temperatureFractionIndex == 2))
+		{
+			temperatureFraction[temperatureFractionIndex] = extraParsedValue;
+			temperatureFractionIndex++;
+		}
+		else if ((temperatureFractionIndex == 1) || ((temperatureFractionIndex == 3)))
+		{
+			temperatureFraction[temperatureFractionIndex] = extraParsedValue;
+			if (temperatureFractionIndex == 3)
+			{
+				temperatureFractionIndex = 0;
+				mHTSValue = (float)temperatureFraction[1];
+				mHTSValue = mHTSValue + (float)(temperatureFraction[3] / 100.0);
+			}
+			else
+			{
+				temperatureFractionIndex++;
+			}
+		}
+		else
+		{
+			mHTSValue = 37;
+		}
 		setHRSValueOnView(mHrmValue);
 	}
 
