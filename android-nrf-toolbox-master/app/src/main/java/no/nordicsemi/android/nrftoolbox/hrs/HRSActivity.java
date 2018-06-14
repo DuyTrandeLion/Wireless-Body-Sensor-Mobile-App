@@ -380,7 +380,8 @@ public class HRSActivity extends BleProfileActivity implements HRSManagerCallbac
 								+ "\"Age\":" + String.valueOf(userAge) + ","
 								+ "\"ID\":" + "\"" + userID + "\"" + ","
 								+ "\"Phone Number\":" + "\"" + userFone + "\"" + "}" + ","
-								+ "\"State\":{" + "\"Heart Rate value\":" + String.valueOf(mHrmValue) + "}"
+								+ "\"State\":{" + "\"Heart Rate value\":" + String.valueOf(mHrmValue) + ","
+								+ "\"Body temperature\":" + String.valueOf(mHTSValue) + "}"
 								+ "}";
 						mqttPublish(SensorValues);
 						publishTimer.start();
